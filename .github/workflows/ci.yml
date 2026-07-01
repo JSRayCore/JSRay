@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Test on Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Verify build is in sync
+        run: |
+          sh build.sh
+          if ! git diff --quiet -- dist/; then
+            echo "::error::dist/ is out of sync with src/. Run 'sh build.sh' and commit."
+            git diff -- dist/
+            exit 1
+          fi
+      - name: Validate version metadata
+        run: npm run check:versions
+      - name: Run tests
+        run: npm test
+      - name: Validate npm package
+        run: npm pack --dry-run

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JSRay Studio · Build your theme</title>
+<link rel="stylesheet" href="../dist/themes/default.css?v=5">
+<link rel="stylesheet" href="../dist/jsray.css?v=5">
+<link rel="stylesheet" href="studio/studio.css?v=5">
+</head>
+<body data-theme="dark">
+
+<header class="studio-header">
+  <div class="brand">JSRAY · STUDIO</div>
+  <h1>Build your theme</h1>
+  <p>Change any color on the left. Download a self-contained CSS or JSON when you're happy.</p>
+  <nav class="studio-nav">
+    <a href="index.html">← Back to demo</a>
+  </nav>
+</header>
+
+<main class="studio">
+
+  <section class="studio-toolbar">
+    <label class="toolbar-field">
+      <span>Theme name</span>
+      <input id="theme-name" type="text" value="my-theme" autocomplete="off" />
+    </label>
+    <div class="toolbar-tabs" role="tablist">
+      <button class="tab active" data-mode="dark"  role="tab">Dark</button>
+      <button class="tab"        data-mode="light" role="tab">Light</button>
+    </div>
+    <div class="toolbar-actions">
+      <button id="reset-btn"   class="btn ghost">Reset</button>
+      <button id="json-btn"    class="btn ghost">Download JSON</button>
+      <button id="css-btn"     class="btn primary">Download CSS</button>
+    </div>
+  </section>
+
+  <section class="studio-body">
+
+    <aside class="pickers" id="pickers">
+      <!-- Color pickers injected by studio.js -->
+    </aside>
+
+    <section class="preview">
+      <div class="preview-tabs">
+        <button class="ptab active" data-lang="js">JavaScript</button>
+        <button class="ptab"        data-lang="python">Python</button>
+        <button class="ptab"        data-lang="html">HTML</button>
+        <button class="ptab"        data-lang="css">CSS</button>
+        <button class="ptab"        data-lang="json">JSON</button>
+      </div>
+      <div class="preview-pane" id="preview-pane">
+        <pre><code id="preview-code" class="language-js"></code></pre>
+      </div>
+    </section>
+
+  </section>
+
+</main>
+
+<script src="../dist/jsray.js?v=5"></script>
+<script type="module" src="studio/studio.js?v=5"></script>
+
+</body>
+</html>

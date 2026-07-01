@@ -1,0 +1,25 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">JSRay mark</title>
+  <desc id="desc">Angle brackets surrounding a small ray syntax point.</desc>
+  <defs>
+    <linearGradient id="jr-mark-ink" x1="38" y1="52" x2="218" y2="204" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#202124"/>
+      <stop offset="1" stop-color="#31404A"/>
+    </linearGradient>
+    <linearGradient id="jr-mark-glow" x1="103" y1="92" x2="153" y2="164" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFCB6B"/>
+      <stop offset="0.52" stop-color="#5DD8B0"/>
+      <stop offset="1" stop-color="#5AC8FA"/>
+    </linearGradient>
+    <filter id="jr-soft-glow" x="68" y="60" width="120" height="136" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+  <rect x="14" y="14" width="228" height="228" rx="52" fill="#F8FAFC"/>
+  <rect x="14" y="14" width="228" height="228" rx="52" stroke="#E2E8F0" stroke-width="2"/>
+  <path d="M93 66L43 128L93 190" stroke="url(#jr-mark-ink)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M163 66L213 128L163 190" stroke="url(#jr-mark-ink)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M128 82L141 115L174 128L141 141L128 174L115 141L82 128L115 115L128 82Z" fill="url(#jr-mark-glow)" opacity="0.22" filter="url(#jr-soft-glow)"/>
+  <path d="M128 86L139 117L170 128L139 139L128 170L117 139L86 128L117 117L128 86Z" fill="url(#jr-mark-glow)"/>
+  <circle cx="128" cy="128" r="7" fill="#FFFFFF"/>
+</svg>
