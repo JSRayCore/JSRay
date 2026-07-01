@@ -1,0 +1,8 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JSRay">
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="#F8FAFC"/>
+  <rect x="3" y="3" width="58" height="58" rx="14" stroke="#E2E8F0"/>
+  <path d="M25 17L12 32L25 47" stroke="#24313A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M39 17L52 32L39 47" stroke="#24313A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 20L35 29L44 32L35 35L32 44L29 35L20 32L29 29L32 20Z" fill="#5DD8B0"/>
+  <path d="M32 23L34 30L41 32L34 34L32 41L30 34L23 32L30 30L32 23Z" fill="#FFCB6B"/>
+</svg>

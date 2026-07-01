@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JSRay · Vanilla JS Highlighter · Demo</title>
+<link rel="stylesheet" href="../dist/themes/default.css?v=4">
+<link rel="stylesheet" href="../dist/jsray.css?v=4">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font: 14px/1.6 -apple-system, "PingFang SC", "Helvetica Neue",
+          "Segoe UI", sans-serif;
+    transition: background 200ms ease, color 200ms ease;
+    background: #1C1C1E; color: #FFFFFF;
+  }
+  body[data-theme="light"] { background: #FFFFFF; color: #000000; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 32px 96px; }
+  header { margin-bottom: 36px; }
+  .brand {
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    opacity: 0.5; margin-bottom: 10px;
+  }
+  h1 { margin: 0 0 8px; font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+  header p { margin: 0; opacity: 0.6; font-size: 13.5px; }
+
+  .toggle {
+    display: inline-flex; gap: 2px; margin-top: 22px;
+    padding: 3px; border-radius: 9px;
+  }
+  body[data-theme="dark"]  .toggle { background: #18181B; box-shadow: inset 0 0 0 1px #27272A; }
+  body[data-theme="light"] .toggle { background: #F4F4F5; box-shadow: inset 0 0 0 1px #E4E4E7; }
+  .toggle button {
+    background: transparent; color: inherit; border: 0;
+    padding: 7px 16px; border-radius: 6px;
+    font: inherit; font-size: 13px; cursor: pointer;
+  }
+  body[data-theme="dark"]  .toggle button.active { background: #2A2A2E; }
+  body[data-theme="light"] .toggle button.active { background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+
+  main { display: grid; gap: 20px; }
+  .sample {
+    border-radius: 12px; overflow: hidden;
+  }
+  body[data-theme="dark"]  .sample { box-shadow: inset 0 0 0 1px #1F1F23; }
+  body[data-theme="light"] .sample { box-shadow: inset 0 0 0 1px #E4E4E7; }
+  .sample .label {
+    margin: 0; padding: 11px 18px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    opacity: 0.55;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  body[data-theme="dark"]  .sample .label { background: #131316; border-bottom: 1px solid #1F1F23; }
+  body[data-theme="light"] .sample .label { background: #FAFAFA; border-bottom: 1px solid #F0F0F0; }
+  .sample .lang-badge {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    opacity: 0.7;
+  }
+  pre[class*="language-"] { border-radius: 0; }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="wrap">
+  <header>
+    <div class="brand">JSRay · Signature</div>
+    <h1>JavaScript-native code rendering · 20+ language identifiers · 22 token classes</h1>
+    <p>Zero dependencies, zero build. Include jsray.js + jsray.css and language-marked or plain <code>&lt;pre&gt;&lt;code&gt;</code> blocks can be auto-scanned.</p>
+    <div class="toggle" role="tablist">
+      <button class="active" data-target="dark">Dark IDE</button>
+      <button data-target="light">Light IDE</button>
+    </div>
+    <p style="margin-top:18px;font-size:13px;">
+      <a href="studio.html" style="color:inherit;opacity:0.7;text-decoration:none;border-bottom:1px dashed currentColor;">
+        Try the theme studio →
+      </a>
+    </p>
+  </header>
+
+  <main>
+
+    <section class="sample">
+      <div class="label"><span>JavaScript</span><span class="lang-badge">language-js</span></div>
+<pre><code class="language-js">// First N terms of the Fibonacci sequence
+function fibonacci(n) {
+  const result = [0, 1];
+  for (let i = 2; i < n; i++) {
+    result.push(result[i - 1] + result[i - 2]);
+  }
+  return result;
+}
+
+const name = "JSRay";
+const MAX_ITEMS = 100;
+const pattern = /^[a-z]+$/i;
+console.log(fibonacci(10));
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>TypeScript</span><span class="lang-badge">language-ts</span></div>
+<pre><code class="language-ts">/**
+ * Describes a user entity
+ */
+interface User {
+  id: number;
+  name: string;
+  role?: "admin" | "guest";
+}
+
+async function fetchUser(id: number): Promise&lt;User&gt; {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error("Not found");
+  return res.json();
+}
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>Python</span><span class="lang-badge">language-python</span></div>
+<pre><code class="language-python">from dataclasses import dataclass
+from typing import List
+
+@dataclass
+class Article:
+    title: str
+    tags: List[str]
+    views: int = 0
+
+    def popular(self) -> bool:
+        # Articles with more than 1,000 views are considered popular
+        return self.views > 1_000
+
+if __name__ == "__main__":
+    a = Article(title="Hello", tags=["intro"], views=2048)
+    print(a.popular())
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>HTML</span><span class="lang-badge">language-html</span></div>
+<pre><code class="language-html">&lt;!-- Article card --&gt;
+&lt;article class="card card--featured" data-id="42"&gt;
+  &lt;h2 class="card__title"&gt;JSRay is live&lt;/h2&gt;
+  &lt;p&gt;A &lt;strong&gt;zero-dependency&lt;/strong&gt; code rendering kernel&lt;/p&gt;
+  &lt;a href="https://jsray.org" target="_blank"&gt;
+    Learn more →
+  &lt;/a&gt;
+&lt;/article&gt;
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>CSS</span><span class="lang-badge">language-css</span></div>
+<pre><code class="language-css">/* Card component styles */
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: #0A0B0E;
+  border-radius: 0.75rem;
+  transition: transform 200ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .card { padding: 16px; }
+}
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>JSON</span><span class="lang-badge">language-json</span></div>
+<pre><code class="language-json">{
+  "name": "jsray",
+  "version": "0.0.1-internal.1",
+  "description": "JavaScript-native code rendering kernel",
+  "license": "MIT",
+  "keywords": ["code-rendering", "themes", "developer-tools"],
+  "main": "jsray.js",
+  "private": true
+}
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>Shell</span><span class="lang-badge">language-bash</span></div>
+<pre><code class="language-bash"># Deploy script
+set -euo pipefail
+
+VERSION="0.0.1-internal.1"
+DIST_DIR="./dist"
+
+if [ ! -d "$DIST_DIR" ]; then
+  mkdir -p "$DIST_DIR"
+fi
+
+echo "Building JSRay v$VERSION..."
+cp jsray.{js,css} "$DIST_DIR/"
+tar -czf "jsray-$VERSION.tgz" "$DIST_DIR"
+echo "Done → jsray-$VERSION.tgz"
+</code></pre>
+    </section>
+
+    <section class="sample">
+      <div class="label"><span>Markdown</span><span class="lang-badge">language-md</span></div>
+<pre><code class="language-md"># JSRay
+
+A **zero-dependency** code rendering kernel supporting *20+ language identifiers*.
+
+## Features
+
+- Auto-scans `&lt;pre&gt;&lt;code&gt;`
+- Dual-theme toggle
+- 22 token-class semantics
+
+[View the demo](https://jsray.org)
+
+&gt; "Less is more." — Mies van der Rohe
+</code></pre>
+    </section>
+
+  </main>
+</div>
+
+<script src="../dist/jsray.js?v=3"></script>
+<script>
+  document.querySelectorAll(".toggle button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.body.dataset.theme = btn.dataset.target;
+      document.querySelectorAll(".toggle button").forEach(b =>
+        b.classList.toggle("active", b === btn));
+    });
+  });
+</script>

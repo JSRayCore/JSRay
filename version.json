@@ -1,0 +1,9 @@
+{
+  "project": "jsray",
+  "name": "JSRay Core",
+  "version": "0.0.1-internal.1",
+  "channel": "internal",
+  "publicBetaReleased": false,
+  "nextPublicBeta": "0.0.1-beta.1",
+  "notes": "Standalone JavaScript-native code rendering kernel. JSRay is planned as a fully open-source ecosystem with Core, official integrations, and community integrations."
+}
