@@ -1,19 +1,22 @@
 # JSRay Core
 
 <p align="center">
-  <img src="assets/brand/jsray-logo.svg" alt="JSRay" width="520">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/jsray-logo-dark.svg">
+    <img src="assets/brand/jsray-logo-light.svg" alt="JSRay" width="520">
+  </picture>
 </p>
 
 **English** · [简体中文](README.zh-CN.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1--internal.1-lightgrey)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.0.1--internal.2-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-internal%20test-lightgrey)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
-[![Languages](https://img.shields.io/badge/languages-20%2B-orange)](docs/languages.md)
+[![Languages](https://img.shields.io/badge/languages-30%2B-orange)](docs/languages.md)
 
-> JavaScript-native code rendering kernel · zero dependencies · 22-class token semantics
+> JavaScript-native code rendering kernel · zero dependencies · 23-class token semantics
 
 <sub>Internal test build · No public beta released yet · Core renderer only · Platform plugins are separate repositories</sub>
 
@@ -49,7 +52,7 @@ JSRay is intended to be a fully open-source code rendering ecosystem: one small 
 
 > One renderer. Many places for code to shine.
 
-Official integrations such as WordPress and VS Code should live in separate repositories, use JSRay Core by default, and remain fully usable without paid feature locks. Their platform layer should expose renderer adapter hooks so other renderers can be integrated when a host project needs them.
+Official integrations (WordPress, VS Code, terminal) are developed in separate repositories and use JSRay Core by default, remaining fully usable without paid feature locks. Each integration repository will be made public as it reaches its own beta. Their platform layer should expose renderer adapter hooks so other renderers can be integrated when a host project needs them.
 
 ---
 
@@ -71,7 +74,7 @@ Official integrations such as WordPress and VS Code should live in separate repo
 
 Once loaded, JSRay **auto-scans** every `<code class="language-xxx">` element and colors it.
 Switch dark/light by setting `<body data-theme="light">` or `"dark"`.
-When no language class is present, `JSRay.detectLanguage()` can infer common snippets such as PHP, Go, Swift, Kotlin, Dart, Lua, SQL, YAML, HTML, CSS, JavaScript, Python, and shell.
+When no language class is present, `JSRay.detectLanguage()` can infer common snippets — shebang lines resolve the interpreter directly, and signal scoring covers PHP, Go, Swift, Kotlin, Dart, Lua, SQL, YAML, HTML, CSS, JavaScript, Python, shell, Elixir, Scala, Objective-C, R, Perl, PowerShell, Haskell, GraphQL, TOML, Dockerfile, Makefile, diff, and more.
 
 ### Themes
 
@@ -80,8 +83,11 @@ JSRay ships color palettes as separate stylesheets under `dist/themes/`. Always 
 | Theme | File | Notes |
 |---|---|---|
 | **default** | `dist/themes/default.css` | The signature palette · dark + light variants |
+| **aurora** | `dist/themes/aurora.css` | Polar night · glacial blue surfaces, aurora mint + violet accents · dark + light |
+| **ember** | `dist/themes/ember.css` | Warm forge · charcoal surfaces, flame keywords, patina-mint functions · dark + light |
+| **fjord** | `dist/themes/fjord.css` | Nordic low-chroma · calm blue-gray, made for long reading sessions · dark + light |
 
-More themes (Dracula, GitHub, Solarized, …) are planned. To preview a future theme, swap only the theme `<link>` — `jsray.css` stays the same.
+Every theme ships both dark and light variants (switch via `data-theme`) and covers all 23 token classes, so all supported languages render fully in any theme. Palette sources live in `themes/*.json`; `tools/generate-theme.mjs` fans them out to CSS. To switch themes, swap only the theme `<link>` — `jsray.css` stays the same.
 
 ### Programmatic API
 
@@ -121,6 +127,18 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 | Markdown | `language-md` `language-markdown` |
 | SQL | `language-sql` |
 | YAML | `language-yaml` `language-yml` |
+| Scala | `language-scala` `language-sc` |
+| Objective-C | `language-objectivec` `language-objc` `language-objective-c` |
+| R | `language-r` |
+| Perl | `language-perl` `language-pl` |
+| PowerShell | `language-powershell` `language-ps1` `language-pwsh` |
+| Elixir | `language-elixir` `language-ex` `language-exs` |
+| Haskell | `language-haskell` `language-hs` |
+| GraphQL | `language-graphql` `language-gql` |
+| TOML / INI | `language-toml` `language-ini` `language-properties` |
+| Dockerfile | `language-dockerfile` `language-docker` |
+| Makefile | `language-makefile` `language-make` |
+| Diff / Patch | `language-diff` `language-patch` |
 
 Per-language grammar details: [docs/languages.md](docs/languages.md).
 
@@ -139,7 +157,8 @@ jsray/
 ├── demo/
 │   └── index.html      ← visual demo across sample languages
 ├── docs/
-│   ├── tokens.md       ← 22-token semantic reference
+│   ├── development.md  ← ecosystem-wide development guide
+│   ├── tokens.md       ← 23-token semantic reference
 │   └── languages.md    ← per-language rule examples
 ├── tokens.json         ← machine-readable palette
 ├── build.sh            ← src → dist sync

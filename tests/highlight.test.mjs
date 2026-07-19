@@ -228,3 +228,241 @@ test('applyTheme: writes --jr-* vars onto the given root', () => {
   assert.equal(fakeRoot.style._bag['--jr-fn-decl'],   '#def');
   assert.equal(fakeRoot.style._bag['--jr-var-param'],'#123');
 });
+
+test('Scala: def declaration and case class', () => {
+  const out = JSRay.highlight('case class User(name: String)\ndef greet(u: User): String = "hi"', 'scala');
+  assert.match(out, /class="tk-keyword">def</);
+  assert.match(out, /class="tk-fn-decl">greet</);
+  assert.match(out, /class="tk-type">User</);
+});
+
+test('Objective-C: directives and NSLog', () => {
+  const out = JSRay.highlight('#import <Foundation/Foundation.h>\n@interface Foo : NSObject\n@end\nNSLog(@"hi %d", 42);', 'objc');
+  assert.match(out, /class="tk-decorator">@interface</);
+  assert.match(out, /class="tk-fn-builtin">NSLog</);
+});
+
+test('R: assignment function declaration and pipes', () => {
+  const out = JSRay.highlight('square <- function(x) { x^2 }\nprint(square(4))', 'r');
+  assert.match(out, /class="tk-fn-decl">square</);
+  assert.match(out, /class="tk-keyword">function</);
+  assert.match(out, /class="tk-fn-builtin">print</);
+});
+
+test('Perl: sub declaration, sigil variables, regex bind', () => {
+  const out = JSRay.highlight('my $name = "x";\nsub greet { print $name if $name =~ /x/; }', 'perl');
+  assert.match(out, /class="tk-fn-decl">greet</);
+  assert.match(out, /class="tk-keyword">my</);
+  assert.match(out, /class="tk-var">\$name</);
+  assert.match(out, /class="tk-regex">/);
+});
+
+test('PowerShell: function, cmdlet, automatic variable', () => {
+  const out = JSRay.highlight('function Get-Greeting { Write-Host $PSItem }', 'ps1');
+  assert.match(out, /class="tk-fn-decl">Get-Greeting</);
+  assert.match(out, /class="tk-fn-builtin">Write-Host</);
+  assert.match(out, /class="tk-var-builtin">\$PSItem</);
+});
+
+test('Elixir: defmodule, def, atoms, pipe', () => {
+  const out = JSRay.highlight('defmodule Greeter do\n  def hello(name), do: IO.puts(name)\nend', 'elixir');
+  assert.match(out, /class="tk-keyword">defmodule</);
+  assert.match(out, /class="tk-fn-decl">hello</);
+  assert.match(out, /class="tk-type">Greeter</);
+});
+
+test('Haskell: type signature name, types, builtin', () => {
+  const out = JSRay.highlight('module Main where\nmain :: IO ()\nmain = putStrLn "hi"', 'haskell');
+  assert.match(out, /class="tk-fn-decl">main</);
+  assert.match(out, /class="tk-type">IO</);
+  assert.match(out, /class="tk-fn-builtin">putStrLn</);
+});
+
+test('GraphQL: keywords, variables, types, fields', () => {
+  const out = JSRay.highlight('query GetUser($id: ID!) { user(id: $id) { name } }', 'graphql');
+  assert.match(out, /class="tk-keyword">query</);
+  assert.match(out, /class="tk-var-param">\$id</);
+  assert.match(out, /class="tk-type">ID</);
+  assert.match(out, /class="tk-property">user</);
+});
+
+test('TOML / INI: sections, keys, values', () => {
+  const toml = JSRay.highlight('[package]\nname = "jsray"\nversion = "0.1.0"', 'toml');
+  assert.match(toml, /class="tk-tag">\[package\]</);
+  assert.match(toml, /class="tk-type">name</);
+
+  const ini = JSRay.highlight('; config\n[server]\nport = 8080', 'ini');
+  assert.match(ini, /class="tk-comment">; config</);
+  assert.match(ini, /class="tk-tag">\[server\]</);
+  assert.match(ini, /class="tk-number">8080</);
+});
+
+test('Dockerfile: instructions and variables', () => {
+  const out = JSRay.highlight('FROM node:18 AS build\nRUN npm ci\nENV PORT=$PORT', 'dockerfile');
+  assert.match(out, /class="tk-keyword">FROM</);
+  assert.match(out, /class="tk-keyword">RUN</);
+  assert.match(out, /class="tk-var-builtin">\$PORT</);
+});
+
+test('Makefile: targets, variables, directives', () => {
+  const out = JSRay.highlight('.PHONY: all\nall: build\n\t$(CC) -o app main.c', 'makefile');
+  assert.match(out, /class="tk-decorator">\.PHONY</);
+  assert.match(out, /class="tk-fn-decl">all</);
+  assert.match(out, /class="tk-var-builtin">\$\(CC\)</);
+});
+
+test('Diff: hunks, additions, deletions', () => {
+  const out = JSRay.highlight('diff --git a/f.js b/f.js\n@@ -1,2 +1,2 @@\n-old line\n+new line', 'diff');
+  assert.match(out, /class="tk-keyword">@@[^<]*@@</);
+  assert.match(out, /class="tk-function">\+new line</);
+  assert.match(out, /class="tk-property">-old line</);
+});
+
+test('detectLanguage: recognizes new language snippets', () => {
+  assert.equal(JSRay.detectLanguage('defmodule Greeter do\n  def hello(n), do: IO.puts(n)\nend'), 'elixir');
+  assert.equal(JSRay.detectLanguage('import scala.collection.mutable\ncase class User(name: String)'), 'scala');
+  assert.equal(JSRay.detectLanguage('#import <Foundation/Foundation.h>\n@interface Foo : NSObject\n@end'), 'objectivec');
+  assert.equal(JSRay.detectLanguage('library(dplyr)\nsquare <- function(x) x^2'), 'r');
+  assert.equal(JSRay.detectLanguage('use strict;\nmy $x = 1;\nsub go { print $x; }'), 'perl');
+  assert.equal(JSRay.detectLanguage('param([string]$Name)\nWrite-Host $Name -eq "x"'), 'powershell');
+  assert.equal(JSRay.detectLanguage('module Main where\nmain :: IO ()\nmain = putStrLn "hi"'), 'haskell');
+  assert.equal(JSRay.detectLanguage('fragment UserFields on User { name }'), 'graphql');
+  assert.equal(JSRay.detectLanguage('[[bin]]\nname = "app"\npath = "src/main.rs"'), 'toml');
+  assert.equal(JSRay.detectLanguage('FROM node:18\nRUN npm ci\nCMD ["node", "index.js"]'), 'dockerfile');
+  assert.equal(JSRay.detectLanguage('.PHONY: all\nall: build\n\tnpm run build'), 'makefile');
+  assert.equal(JSRay.detectLanguage('diff --git a/f b/f\n@@ -1,1 +1,1 @@\n-a\n+b'), 'diff');
+});
+
+test('detectLanguage: shebang lines resolve the interpreter', () => {
+  assert.equal(JSRay.detectLanguage('#!/usr/bin/env python3\nx = 1'), 'python');
+  assert.equal(JSRay.detectLanguage('#!/usr/bin/perl\nprint 1;'), 'perl');
+  assert.equal(JSRay.detectLanguage('#!/usr/bin/env node\nconsole.log(1)'), 'javascript');
+  assert.equal(JSRay.detectLanguage('#!/usr/bin/env ruby\nputs 1'), 'ruby');
+  assert.equal(JSRay.detectLanguage('#!/bin/bash\necho hi'), 'shell');
+});
+
+test('normalizeLanguage: new language aliases', () => {
+  assert.equal(JSRay.normalizeLanguage('objc'), 'objectivec');
+  assert.equal(JSRay.normalizeLanguage('objective-c'), 'objectivec');
+  assert.equal(JSRay.normalizeLanguage('pl'), 'perl');
+  assert.equal(JSRay.normalizeLanguage('ps1'), 'powershell');
+  assert.equal(JSRay.normalizeLanguage('hs'), 'haskell');
+  assert.equal(JSRay.normalizeLanguage('gql'), 'graphql');
+  assert.equal(JSRay.normalizeLanguage('language-docker'), 'dockerfile');
+  assert.equal(JSRay.normalizeLanguage('make'), 'makefile');
+  assert.equal(JSRay.normalizeLanguage('patch'), 'diff');
+  assert.equal(JSRay.normalizeLanguage('properties'), 'ini');
+});
+
+test('Ruby: # inside a double-quoted string is not a comment', () => {
+  const tokens = JSRay.tokenize('"hi #{name} bye"', 'ruby');
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0].type, 'tk-string');
+  // interpolation is highlighted inside the string token
+  assert.ok(tokens[0].content.some(
+    (t) => typeof t !== 'string' && t.type === 'tk-operator' && t.content === '#{name}'
+  ));
+});
+
+test('Ruby: string with # coexists with a real trailing comment', () => {
+  const out = JSRay.highlight('msg = "issue #42" # note', 'ruby');
+  assert.match(out, /class="tk-string">&quot;issue #42&quot;</);
+  assert.match(out, /class="tk-comment"># note</);
+});
+
+test('Shell: # inside a double-quoted string is not a comment', () => {
+  const out = JSRay.highlight('git commit -m "fix #42" # done', 'bash');
+  assert.match(out, /class="tk-string">/);
+  assert.match(out, /fix #42/);
+  assert.match(out, /class="tk-comment"># done</);
+  assert.doesNotMatch(out, /class="tk-comment">#42/);
+});
+
+test('Elixir: #{} interpolation stays inside the string', () => {
+  const out = JSRay.highlight('IO.puts("hi #{name} bye") # note', 'elixir');
+  assert.match(out, /class="tk-string">&quot;hi <span class="tk-operator">#\{name\}<\/span> bye&quot;</);
+  assert.match(out, /class="tk-comment"># note</);
+});
+
+test('Perl: # inside a double-quoted string is not a comment', () => {
+  const out = JSRay.highlight('my $tag = "issue #42"; # note', 'perl');
+  assert.match(out, /class="tk-string">&quot;issue #42&quot;</);
+  assert.match(out, /class="tk-comment"># note</);
+});
+
+test('R: # inside a string is not a comment', () => {
+  const out = JSRay.highlight('col <- "#ff0000" # red', 'r');
+  assert.match(out, /class="tk-string">&quot;#ff0000&quot;</);
+  assert.match(out, /class="tk-comment"># red</);
+});
+
+test('YAML: # inside a quoted scalar is not a comment', () => {
+  const out = JSRay.highlight('color: "#fff" # note', 'yaml');
+  assert.match(out, /class="tk-string">&quot;#fff&quot;</);
+  assert.match(out, /class="tk-comment"># note</);
+});
+
+test('TOML: # inside a string is not a comment', () => {
+  const out = JSRay.highlight('path = "a#b" # note', 'toml');
+  assert.match(out, /class="tk-string">&quot;a#b&quot;</);
+  assert.match(out, /class="tk-comment"># note</);
+});
+
+test('line-comment markers inside strings never become comments (all families)', () => {
+  const cases = [
+    ['js', 'const s = "https://jsray.org";'],
+    ['python', 's = "not # a comment"'],
+    ['php', '$s = "not # or // comment";'],
+    ['c', 'char *s = "https://x";'],
+    ['rust', 'let s = "https://x";'],
+    ['java', 'String s = "https://x";'],
+    ['go', 's := "https://x"'],
+    ['swift', 'let s = "https://x"'],
+    ['kotlin', 'val s = "https://x"'],
+    ['scala', 'val s = "https://x"'],
+    ['objectivec', 'NSString *s = @"https://x";'],
+    ['lua', 's = "not -- a comment"'],
+    ['sql', "SELECT 'not -- a comment' FROM t;"],
+    ['haskell', 's = "not -- a comment"'],
+    ['powershell', '$s = "not # a comment"'],
+    ['graphql', '{ f(arg: "not # x") }'],
+    ['dockerfile', 'ENV MSG="not # a comment"'],
+  ];
+  for (const [lang, code] of cases) {
+    const out = JSRay.highlight(code, lang);
+    assert.ok(!out.includes('tk-comment') && !out.includes('tk-doc'),
+      `${lang}: comment leaked in ${code} → ${out}`);
+  }
+});
+
+test('real comments still work after strings on the same line', () => {
+  assert.match(JSRay.highlight('const u = "https://x"; // real', 'js'), /tk-comment">\/\/ real</);
+  assert.match(JSRay.highlight('s = "a#b"  # real', 'python'), /tk-comment"># real</);
+  assert.match(JSRay.highlight("SELECT 'a--b'; -- real", 'sql'), /tk-comment">-- real</);
+});
+
+test('block comments containing quotes stay whole comments', () => {
+  const out = JSRay.highlight('/* say "AS IS" */ int x;', 'c');
+  assert.match(out, /tk-comment">\/\* say &quot;AS IS&quot; \*\/</);
+  const hs = JSRay.highlight('{- "quoted" -} main = 1', 'haskell');
+  assert.match(hs, /tk-comment">\{- &quot;quoted&quot; -\}</);
+});
+
+test('JSRay.version matches version.json', () => {
+  const { readFileSync } = require('node:fs');
+  const release = JSON.parse(readFileSync(new URL('../version.json', import.meta.url), 'utf8'));
+  assert.equal(JSRay.version, release.version);
+});
+
+test('applyTheme: refined keys fall back to their base family', () => {
+  const fakeRoot = { style: { _bag: {}, setProperty(k, v) { this._bag[k] = v; } } };
+  // Palette defines only the base "function" — the refined keys must inherit it.
+  JSRay.applyTheme({
+    background: '#000', foreground: '#fff',
+    tokens: { 'function': { color: '#123456' } },
+  }, fakeRoot);
+  assert.equal(fakeRoot.style._bag['--jr-function'],   '#123456');
+  assert.equal(fakeRoot.style._bag['--jr-fn-decl'],    '#123456', 'function.declaration falls back');
+  assert.equal(fakeRoot.style._bag['--jr-fn-builtin'], '#123456', 'function.builtin falls back');
+  assert.equal(fakeRoot.style._bag['--jr-keyword'], undefined, 'unrelated families stay unset');
+});

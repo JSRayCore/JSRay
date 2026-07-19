@@ -2,7 +2,7 @@
 
 [English](tokens.md) · [简体中文](tokens.zh-CN.md)
 
-JSRay splits code tokens into 22 classes grouped into 5 semantic families.
+JSRay splits code tokens into 23 classes grouped into 6 semantic families.
 Each class maps to one CSS class name (`tk-*`) and a pair of CSS variables (`--jr-*` × dark/light).
 
 ---

@@ -2,10 +2,10 @@
 
 ## Reporting a vulnerability
 
-If you find a security vulnerability, **do not** open a public issue. Please report it privately through one of the following:
+If you find a security vulnerability, **do not** open a public issue. Please report it privately:
 
+- Email: **support@jsray.org**
 - Official site: https://jsray.org
-- During the internal test phase, report through maintainer Eric Liu's private collaboration channel; a formal security contact will be published once available.
 
 We aim to acknowledge reports within 72 hours.
 

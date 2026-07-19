@@ -1,9 +1,9 @@
 {
   "name": "jsray",
-  "version": "0.0.1-internal.1",
+  "version": "0.0.1-internal.2",
   "private": true,
   "description": "JavaScript-native code rendering kernel with 22-class token semantics and pluggable themes.",
-  "author": "Eric Liu",
+  "author": "Eric Liu <eric@jsray.org>",
   "main": "dist/jsray.js",
   "style": "dist/jsray.css",
   "types": "types/jsray.d.ts",
@@ -20,7 +20,8 @@
     "build": "sh build.sh",
     "check:versions": "node tools/check-versions.mjs",
     "test": "node --test tests/*.mjs",
-    "demo": "echo 'Open demo/index.html in a browser, or serve the project root and visit /demo/'"
+    "demo": "echo 'Open demo/index.html in a browser, or serve the project root and visit /demo/'",
+    "sync:integrations": "sh tools/sync-integrations.sh"
   },
   "keywords": [
     "jsray",
