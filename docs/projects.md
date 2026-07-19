@@ -13,7 +13,7 @@ JSRay is a fully open-source code rendering ecosystem. The goal is to let JSRay 
 ## Ecosystem Layers
 
 1. Core: `jsray`, the zero-dependency JavaScript renderer.
-2. Official integrations: maintained platform projects such as `jsray-wordpress` and `jsray-vscode`.
+2. Official integrations: maintained platform projects: `jsray-wp`, `jsray-vscode`, and `jsray-terminal`.
 3. Community integrations: third-party adapters for frameworks, static-site generators, editors, and publishing tools.
 
 Official integrations should be complete open-source projects. They should not lock the baseline JSRay experience behind paid feature gates.
@@ -62,9 +62,10 @@ Core changes flow into plugin repositories by copying or packaging `dist/` asset
 Expected open-source repositories:
 
 - `jsray`: Core renderer and npm package.
-- `jsray-wordpress`: WordPress plugin.
+- `jsray-wp`: WordPress plugin.
+- `jsray-terminal`: terminal CLI.
 - `jsray-vscode`: VS Code extension.
-- Future platform repositories such as `jsray-react`, `jsray-astro`, `jsray-mdx`, or `jsray-cli` if needed.
+- Future platform repositories such as `jsray-react`, `jsray-astro`, or `jsray-mdx` if needed.
 
 ## Website Routes
 

@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
   json: `{
   "name": "jsray",
-  "version": "0.0.1-internal.1",
+  "version": "1.0.0",
   "active": true,
   "count": 22,
   "languages": ["js", "python", "html", "css", "json"]
@@ -241,8 +241,9 @@ function onColorChange(item, value, colorEl, hexEl) {
   // Sync companion input
   if (colorEl.value !== value) colorEl.value = value;
   if (hexEl.value !== value)   hexEl.value = value;
-  // Apply to root via core API
-  JSRay.applyTheme(state.themes[state.mode]);
+  // Apply onto <body>: it carries data-theme, so inline vars there beat the
+  // theme stylesheet's [data-theme] block.
+  JSRay.applyTheme(state.themes[state.mode], document.body);
 }
 
 function syncPickers() {
@@ -263,7 +264,7 @@ function syncPreview() {
 
 function syncAll() {
   document.body.dataset.theme = state.mode;
-  JSRay.applyTheme(state.themes[state.mode]);
+  JSRay.applyTheme(state.themes[state.mode], document.body);
   syncPickers();
   syncPreview();
 }

@@ -49,6 +49,8 @@ includes('CHANGELOG.md', `## [${version}]`);
 includes('docs/versioning.md', `Current version: \`${version}\``);
 includes('docs/projects.md', 'JSRay Core');
 
+includes('src/jsray.js', `version: '${version}',`, 'runtime JSRay.version matching version.json');
+
 if (fail.length) {
   console.error('Version metadata check failed:');
   for (const message of fail) {

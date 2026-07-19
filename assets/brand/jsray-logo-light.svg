@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="240" viewBox="0 0 760 240">
+  <defs>
+    <linearGradient id="grad" x1="26" y1="110" x2="134" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22D3EE"></stop><stop offset="0.5" stop-color="#818CF8"></stop><stop offset="1" stop-color="#E879F9"></stop></linearGradient>
+    <linearGradient id="wordgrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22D3EE"></stop><stop offset="0.5" stop-color="#818CF8"></stop><stop offset="1" stop-color="#E879F9"></stop></linearGradient>
+  </defs>
+  <rect width="760" height="240" fill="#FFFFFF"></rect>
+  <g transform="translate(40,40)">
+    <rect width="160" height="160" rx="38" fill="#FFFFFF"></rect>
+    <g fill="none" stroke="url(#grad)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M48 56 L24 80 L48 104"></path><path d="M112 56 L136 80 L112 104"></path><path d="M70 114 L90 46"></path></g>
+  </g>
+  <text x="236" y="147" font-family="&#39;Helvetica Neue&#39;, Helvetica, Arial, sans-serif" font-size="88" font-weight="700" letter-spacing="-2"><tspan fill="#202124">JS</tspan><tspan fill="url(#wordgrad)">Ray</tspan></text>
+</svg>

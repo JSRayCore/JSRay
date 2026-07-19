@@ -1,6 +1,6 @@
 /* =========================================================
    JSRay · Core styles (structure only)
-   Containers, scrollbar, and the 22 token-class color bindings.
+   Containers, scrollbar, and the 23 token-class color bindings.
    Palette values live in a separate theme stylesheet:
      <link rel="stylesheet" href="dist/themes/default.css">
    Ship a theme alongside this file or token colors will be empty.

@@ -25,6 +25,9 @@ declare namespace JSRay {
   type TokenStream = Array<string | Token>;
 
   /** Grammars for every registered language */
+  /** Runtime version string, matches version.json (e.g. "0.0.1-internal.2"). */
+  const version: string;
+
   const languages: Record<string, Grammar>;
 
   /** Normalize aliases such as `language-c++`, `c#`, `yml`, or `py`. */

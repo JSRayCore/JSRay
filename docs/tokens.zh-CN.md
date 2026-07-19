@@ -2,7 +2,7 @@
 
 [English](tokens.md) · **简体中文**
 
-JSRay 把代码中的 token 拆成 22 类，分为 5 个语义族。
+JSRay 把代码中的 token 拆成 23 类，分为 6 个语义族。
 每个类对应一个 CSS 类名（`tk-*`）和一对 CSS 变量（`--jr-*` × dark/light）。
 
 ---

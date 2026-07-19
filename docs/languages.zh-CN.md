@@ -186,7 +186,7 @@ fn main() {
 ```json
 {
   "name": "jsray",
-  "version": "0.0.1-internal.1",
+  "version": "1.0.0",
   "active": true,
   "count": 22
 }
@@ -266,6 +266,162 @@ plugins:
 
 ---
 
+## Scala / Objective-C
+
+**class**: `language-scala` `language-sc` · `language-objectivec` `language-objc` `language-objective-c`
+
+两者共用 C 系语法框架,各配独立的关键字/内建表。Scala 额外标记 `def` 声明名(`def f(x: Int): Int = ...`);Objective-C 的 `@interface` / `@property` 指令按装饰器着色,`NS*` 类按内建着色。
+
+```scala
+case class User(name: String)
+def greet(u: User): String = s"hi ${u.name}"
+```
+
+---
+
+## R
+
+**class**: `language-r`
+
+识别 `name <- function(...)` 声明、`library()` / `data.frame()` 内建函数、`$成员` 访问、`%>%` 系操作符和 `<-` 赋值。
+
+```r
+square <- function(x) { x^2 }
+print(square(4))
+```
+
+---
+
+## Perl
+
+**class**: `language-perl` `language-pl`
+
+识别 POD 文档块(`=head1 ... =cut`)、`sub` 声明、`$标量` / `@数组` / `%哈希` 符号变量、特殊变量(`$_`、`@ARGV`)、正则绑定(`=~ /.../`)和列表内建函数。
+
+```perl
+use strict;
+my $name = "world";
+sub greet { print "hi $name"; }
+```
+
+---
+
+## PowerShell
+
+**class**: `language-powershell` `language-ps1` `language-psm1` `language-pwsh`
+
+识别 `function Verb-Noun` 声明、常用 cmdlet(`Write-Host`、`ForEach-Object` 等)、自动变量(`$_`、`$PSItem`、`$env:*`)、`[Type]` 类型加速器、比较操作符(`-eq`、`-match`)和 `<# ... #>` 块注释。
+
+```powershell
+function Get-Greeting { Write-Host "hi $Name" }
+```
+
+---
+
+## Elixir
+
+**class**: `language-elixir` `language-ex` `language-exs`
+
+识别 `defmodule` / `def` / `defp` 声明、`:atom` 原子、模块属性(后接 `"""` 的 `@doc` 按文档注释着色)、大写模块名、字符串插值 `#{...}` 和 `|>` 管道。
+
+```elixir
+defmodule Greeter do
+  def hello(name), do: IO.puts("hi " <> name)
+end
+```
+
+---
+
+## Haskell
+
+**class**: `language-haskell` `language-hs`
+
+识别类型签名声明名(`main :: IO ()`)、大写类型构造器、`--` 与 `{- -}` 注释、prelude 内建函数(`putStrLn`、`fmap` 等)和箭头/绑定操作符。
+
+```haskell
+main :: IO ()
+main = putStrLn "hi"
+```
+
+---
+
+## GraphQL
+
+**class**: `language-graphql` `language-gql`
+
+识别操作关键字(`query`、`mutation`、`fragment ... on`)、`$变量`(按参数着色)、大写类型名、字段名、`@指令` 和 `"""` 描述。
+
+```graphql
+query GetUser($id: ID!) {
+  user(id: $id) { name email }
+}
+```
+
+---
+
+## TOML / INI
+
+**class**: `language-toml` · `language-ini` `language-properties` `language-cfg` `language-conf`
+
+两者的 `[section]` 头按 tag 着色,键按类型着色(与 YAML 一致)。TOML 额外支持 `[[数组表]]`、`"""` 多行字符串、日期和带类型数字;INI 接受 `;` 注释和 `key: value` 形式。
+
+```toml
+[package]
+name = "jsray"
+version = "0.1.0"
+```
+
+---
+
+## Dockerfile
+
+**class**: `language-dockerfile` `language-docker`
+
+识别大写指令(`FROM`、`RUN`、`COPY` 等)、阶段别名(`AS build`)、`$VAR` / `${VAR}` 展开和 `--flag` 选项。
+
+```dockerfile
+FROM node:18 AS build
+RUN npm ci
+CMD ["node", "index.js"]
+```
+
+---
+
+## Makefile
+
+**class**: `language-makefile` `language-make` `language-mk`
+
+识别目标声明(`all:`)、`.PHONY` 系特殊目标、`$(VAR)` / 自动变量(`$@`、`$<`)、条件指令(`ifeq` 等)和赋值操作符(`:=`、`?=`、`+=`)。
+
+```makefile
+.PHONY: all
+all: build
+	$(CC) -o app main.c
+```
+
+---
+
+## Diff / Patch
+
+**class**: `language-diff` `language-patch`
+
+`+` 新增行渲染为薄荷绿,`-` 删除行为暖玫瑰色,`@@ ... @@` hunk 头按关键字着色,`diff --git` / `index` / `---` / `+++` 元信息按注释着色。
+
+```diff
+diff --git a/f.js b/f.js
+@@ -1,2 +1,2 @@
+-old line
++new line
+```
+
+---
+
 ## 自动识别
 
 JSRay 暴露 `JSRay.detectLanguage(code)`。当代码片段有明确特征时返回语言 id，不确定时返回空字符串。需要精确控制时，仍优先建议显式写 `language-*` class。
+
+识别按三步进行:
+
+1. **JSON 快速通道** —— 能被 JSON 解析的输入直接返回 `json`。
+2. **Shebang 快速通道** —— 首行 `#!` 直接解析解释器(`python`、`perl`、`ruby`、`node` → `javascript`、`pwsh` → `powershell`、`php`、`bash`/`sh`/`zsh` → `shell`)。
+3. **特征打分** —— 每种语言的检测器对独有特征打分(如 Elixir 的 `defmodule`、Dockerfile 的 `^FROM image`、diff 的 `@@ -1,2 +1,2 @@`),超过置信阈值的最高分胜出。
