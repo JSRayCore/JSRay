@@ -154,13 +154,17 @@ jsray/
 ├── dist/               ← release artifacts (zero-build, currently = src copy)
 │   ├── jsray.js
 │   └── jsray.css
+├── themes/             ← additional palette sources (aurora, ember, fjord)
 ├── demo/
-│   └── index.html      ← visual demo across sample languages
+│   ├── index.html      ← visual demo across sample languages
+│   └── studio.html     ← in-browser theme studio
 ├── docs/
 │   ├── development.md  ← ecosystem-wide development guide
 │   ├── tokens.md       ← 23-token semantic reference
 │   └── languages.md    ← per-language rule examples
-├── tokens.json         ← machine-readable palette
+├── tools/              ← theme generator · version checks · integration sync
+├── tests/              ← node --test suites
+├── tokens.json         ← machine-readable palette (the default theme)
 ├── build.sh            ← src → dist sync
 ├── package.json
 ├── LICENSE
