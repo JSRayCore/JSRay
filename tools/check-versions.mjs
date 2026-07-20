@@ -42,9 +42,15 @@ expect(pkg.version === version, `package.json version ${pkg.version} does not ma
 expect(tokens.version === version, `tokens.json version ${tokens.version} does not match ${version}`);
 
 includes('README.md', `version-${escapedBadgeVersion}`);
-includes('README.md', 'Internal test build');
 includes('README.zh-CN.md', `version-${escapedBadgeVersion}`);
-includes('README.zh-CN.md', '内部测试版');
+// Phase wording in the README subtitles must match the channel.
+if (channel === 'internal') {
+  includes('README.md', 'Internal test build');
+  includes('README.zh-CN.md', '内部测试版');
+} else if (channel === 'beta') {
+  includes('README.md', 'Public beta');
+  includes('README.zh-CN.md', '公开测试版');
+}
 includes('CHANGELOG.md', `## [${version}]`);
 includes('docs/versioning.md', `Current version: \`${version}\``);
 includes('docs/projects.md', 'JSRay Core');

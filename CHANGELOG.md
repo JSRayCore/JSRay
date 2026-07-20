@@ -5,6 +5,18 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [0.0.1-beta.1] — 2026-07-17
+
+### Status
+- **First public beta.** The repository is public at [github.com/JSRayCore/JSRay](https://github.com/JSRayCore/JSRay); integration repositories (WordPress, VS Code, terminal) open as each reaches its own beta.
+
+### Highlights (everything from the internal series below)
+- Zero-dependency rendering kernel: 35 language families / 79 language keys, 23-class token semantics with six-family identifier separation.
+- Four built-in themes (default, aurora, ember, fjord), each dark + light, generated from palette JSON.
+- Three-step language detection (JSON fast path → shebang → signal scoring).
+- Token fallback chain and vocabulary governance for forward-compatible growth.
+- ~2× tokenizer performance via rule-regex caching.
+
 ## [0.0.1-internal.2] — 2026-07-02
 
 ### Status

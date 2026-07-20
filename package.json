@@ -1,6 +1,6 @@
 {
   "name": "jsray",
-  "version": "0.0.1-internal.2",
+  "version": "0.0.1-beta.1",
   "private": true,
   "description": "JavaScript-native code rendering kernel with 22-class token semantics and pluggable themes.",
   "author": "Eric Liu <eric@jsray.org>",

@@ -10,15 +10,15 @@
 **English** · [简体中文](README.zh-CN.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1--internal.2-lightgrey)](CHANGELOG.md)
-[![Channel](https://img.shields.io/badge/channel-internal%20test-lightgrey)](docs/versioning.md)
+[![Version](https://img.shields.io/badge/version-0.0.1--beta.1-lightgrey)](CHANGELOG.md)
+[![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
 [![Languages](https://img.shields.io/badge/languages-30%2B-orange)](docs/languages.md)
 
 > JavaScript-native code rendering kernel · zero dependencies · 23-class token semantics
 
-<sub>Internal test build · No public beta released yet · Core renderer only · Platform plugins are separate repositories</sub>
+<sub>Public beta · Core renderer only · Platform plugins are separate repositories</sub>
 
 ---
 
