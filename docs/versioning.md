@@ -2,10 +2,9 @@
 
 JSRay Core uses single-project versioning. Platform plugins keep their own version files in their own repositories.
 
-Current version: `0.0.1-internal.2`
-Current channel: `internal`
-Public beta released: no
-Next public beta target: `0.0.1-beta.1`
+Current version: `0.0.1-beta.1`
+Current channel: `beta`
+Public beta released: yes
 
 JSRay Core is the standalone JavaScript-native code rendering kernel. Platform plugins, including the WordPress plugin, are separate repositories that consume and bundle Core.
 

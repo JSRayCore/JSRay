@@ -10,15 +10,15 @@
 [English](README.md) · **简体中文**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1--internal.2-lightgrey)](CHANGELOG.md)
-[![Channel](https://img.shields.io/badge/channel-internal%20test-lightgrey)](docs/versioning.md)
+[![Version](https://img.shields.io/badge/version-0.0.1--beta.1-lightgrey)](CHANGELOG.md)
+[![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
 [![Languages](https://img.shields.io/badge/languages-30%2B-orange)](docs/languages.md)
 
 > JavaScript 原生代码渲染内核 · 零依赖 · 23 类 token 语义体系
 
-<sub>内部测试版 · 尚未公开 beta 发布 · 仅代表 Core 渲染框架 · 平台插件是独立仓库</sub>
+<sub>公开测试版 · 仅代表 Core 渲染框架 · 平台插件是独立仓库</sub>
 
 ---
 
