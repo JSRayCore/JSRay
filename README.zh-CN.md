@@ -154,13 +154,17 @@ jsray/
 ├── dist/               ← 发布产物 (零构建,目前 = src 副本)
 │   ├── jsray.js
 │   └── jsray.css
+├── themes/             ← 附加调色板源(aurora、ember、fjord)
 ├── demo/
-│   └── index.html      ← 示例语言可视化演示
+│   ├── index.html      ← 示例语言可视化演示
+│   └── studio.html     ← 浏览器内主题工作台
 ├── docs/
 │   ├── development.md  ← 全生态开发指南
 │   ├── tokens.md       ← 23 token 语义详解
 │   └── languages.md    ← 各语言规则范例
-├── tokens.json         ← 调色板机器可读格式
+├── tools/              ← 主题生成器 · 版本校验 · 集成同步
+├── tests/              ← node --test 测试
+├── tokens.json         ← 调色板机器可读格式(default 主题)
 ├── build.sh            ← src → dist 同步
 ├── package.json
 ├── LICENSE
