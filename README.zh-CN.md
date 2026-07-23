@@ -2,8 +2,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/jsray-logo-dark.svg">
-    <img src="assets/brand/jsray-logo-light.svg" alt="JSRay" width="520">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/jsray-logo-hero-dark.svg">
+    <img src="assets/brand/jsray-logo-hero-light.svg" alt="JSRay" width="520">
   </picture>
 </p>
 
