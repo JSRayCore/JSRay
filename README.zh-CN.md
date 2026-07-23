@@ -1,5 +1,3 @@
-# JSRay Core
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/brand/jsray-logo-hero-dark.svg">
