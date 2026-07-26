@@ -23,21 +23,21 @@ test('highlightElement: explicit language-js class is honored', () => {
   const el = fakeCode('const x = 42;', 'language-js');
   JSRay.highlightElement(el);
   assert.match(el.innerHTML, /class="tk-keyword">const</);
-  assert.equal(el.dataset.cxLang, 'js');
+  assert.equal(el.dataset.jsrayLang, 'js');
   assert.deepEqual(el.addedClasses, []); // class already present, none added
 });
 
 test('highlightElement: lang- prefix and aliases normalize', () => {
   const el = fakeCode('puts "hi"', 'lang-rb');
   JSRay.highlightElement(el);
-  assert.equal(el.dataset.cxLang, 'ruby');
+  assert.equal(el.dataset.jsrayLang, 'ruby');
   assert.match(el.innerHTML, /tk-fn-builtin">puts</);
 });
 
 test('highlightElement: no class → auto-detects and tags the element', () => {
   const el = fakeCode('def greet(name):\n    print(name)\n\nself.x = 1');
   JSRay.highlightElement(el);
-  assert.equal(el.dataset.cxLang, 'python');
+  assert.equal(el.dataset.jsrayLang, 'python');
   assert.deepEqual(el.addedClasses, ['language-python']);
   assert.match(el.innerHTML, /class="tk-keyword">def</);
 });
@@ -46,7 +46,7 @@ test('highlightElement: undetectable content is left untouched', () => {
   const el = fakeCode('hello world, nothing code-like here at all');
   JSRay.highlightElement(el);
   assert.equal(el.innerHTML, null);
-  assert.equal(el.dataset.cxLang, undefined);
+  assert.equal(el.dataset.jsrayLang, undefined);
   assert.deepEqual(el.addedClasses, []);
 });
 

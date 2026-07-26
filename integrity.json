@@ -1,0 +1,14 @@
+{
+  "project": "jsray",
+  "version": "0.0.1-beta.2",
+  "algorithm": "sha256",
+  "note": "Base64 SHA-256 digests of the released Core assets. Integrations copy the relevant digest at sync time and verify their bundled snapshot against it.",
+  "files": {
+    "dist/jsray.js": "sha256-ax/uWd8wJEoT5keSb+Ide0ZwRpSYlYRBjrvB/i3pCio=",
+    "dist/jsray.css": "sha256-vy6Z3h1SiB/bNmCH/tq7YwQGV0DdeHf2L+cBFnC2CYk=",
+    "dist/themes/aurora.css": "sha256-S8X+R8XZNC8WRdHOen839zMkPxVFol6PPTrpZibbeJA=",
+    "dist/themes/default.css": "sha256-vENOigRjwn1hW6wPjdM4tbZ58Ja44FMsa+akavPiMSI=",
+    "dist/themes/ember.css": "sha256-n+VZDAymPT0bPyLU+y4E4DGOI0ygYopKHaMCpGq87sk=",
+    "dist/themes/fjord.css": "sha256-hUxGnJExNWpi0q2G3ulDr5yVj7Dl1Aktf3lKnA3wINc="
+  }
+}

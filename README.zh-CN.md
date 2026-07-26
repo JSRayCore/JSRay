@@ -8,7 +8,7 @@
 [English](README.md) · **简体中文**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1--beta.1-lightgrey)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.0.1--beta.2-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)

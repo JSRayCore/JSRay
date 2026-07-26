@@ -18,4 +18,10 @@ mkdir -p dist/themes
 cp src/jsray.js  dist/jsray.js
 cp src/jsray.css dist/jsray.css
 cp src/themes/*.css dist/themes/
+# Fingerprint the released assets so integrations can verify the snapshot they
+# bundle is the official build.
+if command -v node >/dev/null 2>&1; then
+  node tools/integrity.mjs
+fi
+
 echo "synced src/ → dist/"

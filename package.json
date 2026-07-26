@@ -1,6 +1,6 @@
 {
   "name": "@jsray/core",
-  "version": "0.0.1-beta.1",
+  "version": "0.0.1-beta.2",
   "description": "JavaScript-native code rendering kernel with 23-class token semantics and pluggable themes.",
   "author": "Eric Liu <eric@jsray.org>",
   "license": "MIT",
@@ -24,7 +24,9 @@
     "README.md",
     "README.zh-CN.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "vocabulary.json",
+    "integrity.json"
   ],
   "publishConfig": {
     "access": "public"
@@ -34,7 +36,8 @@
     "check:versions": "node tools/check-versions.mjs",
     "test": "node --test tests/*.mjs",
     "demo": "echo 'Open demo/index.html in a browser, or serve the project root and visit /demo/'",
-    "sync:integrations": "sh tools/sync-integrations.sh"
+    "sync:integrations": "sh tools/sync-integrations.sh",
+    "check:integrity": "node tools/integrity.mjs --check"
   },
   "keywords": [
     "jsray",

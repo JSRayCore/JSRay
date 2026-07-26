@@ -5,6 +5,14 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [0.0.1-beta.2] — 2026-07-26
+
+### Fixed
+- `highlightElement()` tagged elements with `data-cx-lang`, a leftover from the project's pre-rename identity, instead of `data-jsray-lang`. The attribute is informational — nothing in Core reads it back — but it surfaced in the DOM of every page using JSRay. Integrations that read it (the VS Code preview adapter's re-render cache) were updated in step.
+
+### Changed
+- Published to npm as [`@jsray/core`](https://www.npmjs.com/package/@jsray/core). The unscoped name `jsray` is unavailable, and the `@jsray` scope reserves the whole family for the integrations.
+
 ## [0.0.1-beta.1] — 2026-07-17
 
 ### Status

@@ -18,33 +18,11 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-// Map semantic JSON keys → CSS variable suffix (and CSS class suffix).
-// CSS produces `--jr-<suffix>`; the runtime emits `<span class="tk-<suffix>">`.
-const ALIAS = {
-  'keyword':              'keyword',
-  'function':             'function',
-  'function.declaration': 'fn-decl',
-  'function.builtin':     'fn-builtin',
-  'variable':             'var',
-  'variable.parameter':   'var-param',
-  'variable.builtin':     'var-builtin',
-  'variable.constant':    'var-const',
-  'type':                 'type',
-  'property':             'property',
-  'string':               'string',
-  'string.regex':         'regex',
-  'number':               'number',
-  'comment':              'comment',
-  'comment.doc':          'doc',
-  'decorator':            'decorator',
-  'operator':             'operator',
-  'punctuation':          'punct',
-  'tag':                  'tag',
-  'attribute':            'attr',
-  'selector':             'selector',
-  'css.property':         'css-prop',
-  'css.unit':             'css-unit',
-};
+// The token vocabulary lives in vocabulary.json so every surface — this
+// generator, the VS Code theme builder, the terminal ANSI mapper, and the
+// WordPress custom-palette validator — reads one copy. A palette key maps to
+// `--jr-<suffix>` in CSS and `<span class="tk-<suffix>">` at runtime.
+const ALIAS = JSON.parse(readFileSync(resolve(ROOT, 'vocabulary.json'), 'utf8')).tokens;
 
 function renderBlock(source, selector, theme) {
   const lines = [
