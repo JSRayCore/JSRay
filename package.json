@@ -37,7 +37,9 @@
     "test": "node --test tests/*.mjs",
     "demo": "echo 'Open demo/index.html in a browser, or serve the project root and visit /demo/'",
     "sync:integrations": "sh tools/sync-integrations.sh",
-    "check:integrity": "node tools/integrity.mjs --check"
+    "check:integrity": "node tools/integrity.mjs --check",
+    "release": "sh tools/release.sh",
+    "release:dry": "sh tools/release.sh --dry-run"
   },
   "keywords": [
     "jsray",

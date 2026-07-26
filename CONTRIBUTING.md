@@ -52,9 +52,38 @@ docs: add Markdown-specific classes to the 22-token table
 
 ## Pull Requests
 
+`main` is protected and **nobody pushes to it directly — maintainers included**.
+Every change lands the same way:
+
+```sh
+git checkout -b my-change
+# ... work, then:
+npm test && node tools/check-versions.mjs
+git push origin my-change
+gh pr create --fill
+```
+
+CI runs the suite on Node 18, 20, and 22. All three must pass before the PR can
+merge; the branch also has to be up to date with `main`.
+
 - One PR per concern, to keep reviews easy.
 - Engine or grammar changes must come with added / updated tests.
 - Palette changes should include demo screenshots (both dark and light).
+
+## Releasing
+
+Only for maintainers, and the version bump is itself a pull request:
+
+1. Bump `version.json`, `package.json`, `src/jsray.js`, `tokens.json`, and the
+   docs `check:versions` looks at; add the `CHANGELOG.md` section.
+2. Open a PR, let CI pass, merge it.
+3. From the merged `main`: `npm run release`.
+
+`tools/release.sh` publishes to npm, tags the commit, and cuts the GitHub
+release from the changelog section — refusing to start if the tree is dirty,
+the tag exists, the version is already on npm, or `dist/` is stale in the
+commit. Tags are not covered by branch protection, so the script needs no
+special access.
 
 ## Code of Conduct
 
