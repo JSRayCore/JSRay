@@ -164,7 +164,7 @@ renderer.languages                 -> { [language]: grammar }
 
 **文档** —— 英文为源语言;主要文档保留 `*.zh-CN.md` 副本。语言切换链接的标签与 Core `check-versions` 里的中文内容断言是刻意保留的中文。
 
-**品牌** —— 全生态一个主 logo;平台差异用文字 lockup,不做独立标识。最终标识为深色圆角底上的渐变 `</>`(`assets/brand/`,dark + light 双版本,SVG 与 PNG 均备);详见 `assets/brand/README.md`。
+**品牌** —— 全生态一个主 logo;平台差异用文字 lockup,不做独立标识。最终标识为深色圆角底上的渐变 `</>`(`assets/brand/`,dark + light 双版本,SVG 与 PNG 均备)。README 头图使用 `jsray-logo-hero-*` 派生文件(透明底、墨迹居中、同尺度——设计源文件保持不动);详见 `assets/brand/README.md`。
 
 ---
 

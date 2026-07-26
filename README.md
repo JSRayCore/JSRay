@@ -1,9 +1,7 @@
-# JSRay Core
-
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/jsray-logo-dark.svg">
-    <img src="assets/brand/jsray-logo-light.svg" alt="JSRay" width="520">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/jsray-logo-hero-dark.svg">
+    <img src="assets/brand/jsray-logo-hero-light.svg" alt="JSRay" width="520">
   </picture>
 </p>
 
@@ -14,7 +12,7 @@
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
-[![Languages](https://img.shields.io/badge/languages-30%2B-orange)](docs/languages.md)
+[![Languages](https://img.shields.io/badge/languages-35-orange)](docs/languages.md)
 
 > JavaScript-native code rendering kernel · zero dependencies · 23-class token semantics
 

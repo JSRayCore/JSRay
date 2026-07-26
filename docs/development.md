@@ -268,7 +268,9 @@ copies. Language-switcher labels and the zh-content assertion in Core's
 **Branding** — one master logo for the whole ecosystem; platform variants
 are text lockups, never separate marks. The final mark is the gradient
 `</>` on a dark tile (`assets/brand/`, dark + light variants in SVG and
-PNG); see `assets/brand/README.md`.
+PNG). README heroes use the `jsray-logo-hero-*` derivatives (transparent,
+ink-centered, same scale — designer originals stay untouched); see
+`assets/brand/README.md`.
 
 ---
 
