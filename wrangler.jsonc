@@ -1,0 +1,11 @@
+{
+  // Cloudflare Workers static-asset config for the jsray.org site.
+  // The site is assembled by tools/build-site.sh (build command) into _site/,
+  // which promotes the demo to the site root — jsray.org needs no /demo prefix.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jsray",
+  "compatibility_date": "2026-07-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "assets": { "directory": "_site" }
+}

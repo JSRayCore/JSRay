@@ -69,9 +69,12 @@ Expected open-source repositories:
 
 ## Website Routes
 
-The public website should keep the brand concentrated under `jsray.org`:
+The public website keeps the brand concentrated under `jsray.org`:
 
-- `https://jsray.org`: project home and Core renderer.
-- `https://jsray.org/docs`: shared documentation.
-- `https://jsray.org/wordpress`: WordPress plugin.
-- `https://jsray.org/vscode`: VS Code extension.
+- `https://jsray.org`: project home — the live demo, theme switcher, and Core renderer.
+- `https://jsray.org/studio.html`: in-browser theme studio.
+- `https://jsray.org/dist/`: released Core assets, usable directly as a CDN
+  (`jsray.org/dist/jsray.js`, `jsray.org/dist/themes/<name>.css`).
+
+Per-integration routes are added as each integration ships — no route is
+published before the product behind it exists.
