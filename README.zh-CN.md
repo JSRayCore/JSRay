@@ -7,6 +7,7 @@
 
 [English](README.md) · **简体中文**
 
+[![npm](https://img.shields.io/npm/v/@jsray/core/beta?label=npm)](https://www.npmjs.com/package/@jsray/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.0.1--beta.2-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
@@ -17,6 +18,35 @@
 > JavaScript 原生代码渲染内核 · 零依赖 · 23 类 token 语义体系
 
 <sub>公开测试版 · 仅代表 Core 渲染框架 · 平台插件是独立仓库</sub>
+
+---
+
+## 安装
+
+```sh
+npm install @jsray/core
+```
+
+```js
+const JSRay = require('@jsray/core');
+JSRay.highlight('const x = 42;', 'js');
+```
+
+自带 TypeScript 类型定义,不需要额外装 `@types` 包。
+
+也可以完全不用构建工具,直接放进页面:
+
+```html
+<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
+<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
+<script src="https://jsray.org/dist/jsray.js"></script>
+```
+
+`jsray.org/dist/` 始终提供当前发布版本。**线上站点如果你不会持续盯着,请改用锁定版本的地址** —— 每个发布版本都固化在自己的路径下,永不变动:
+
+```html
+<script src="https://jsray.org/v/0.0.1-beta.2/jsray.js"></script>
+```
 
 ---
 
@@ -67,31 +97,19 @@ JSRay 把 6 个标识符族**视觉分离**，让你用余光就能区分参数�
 
 ```html
 <!-- 1. 选一个主题（调色板）。后续会加更多主题，"default" 是签名风格。 -->
-<link rel="stylesheet" href="dist/themes/default.css">
+<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
 <!-- 2. 加载核心样式（结构 + token 绑定） -->
-<link rel="stylesheet" href="dist/jsray.css">
+<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
 
 <body data-theme="dark">
   <pre><code class="language-js">
     function fibonacci(n) { return n; }
   </code></pre>
 </body>
-<script src="dist/jsray.js"></script>
-```
-
-### 安装
-
-```sh
-npm install @jsray/core@beta
-```
-
-也可以直接从官网引入,无需构建工具:
-
-```html
-<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
-<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
 <script src="https://jsray.org/dist/jsray.js"></script>
 ```
+
+通过 npm 安装时,这些文件位于 `node_modules/@jsray/core/dist/`。
 
 引入后会**自动扫描** `<code class="language-xxx">` 元素并染色。
 明暗切换：把 `<body>` 的 `data-theme` 改为 `"light"` 或 `"dark"`。
@@ -165,7 +183,9 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 
 ---
 
-## 项目结构
+## 仓库结构
+
+下面是**仓库**的结构。npm 包里只有构建产物 —— `dist/`、`types/`、`tokens.json`、`vocabulary.json`、`integrity.json`;其余内容只有克隆仓库才有。
 
 ```
 jsray/
@@ -186,6 +206,8 @@ jsray/
 ├── tools/              ← 主题生成器 · 版本校验 · 集成同步
 ├── tests/              ← node --test 测试
 ├── tokens.json         ← 调色板机器可读格式(default 主题)
+├── vocabulary.json     ← 23 token 词表,所有渲染面共用这一份
+├── integrity.json      ← 已发布 dist/ 资源的 SHA-256 摘要
 ├── build.sh            ← src → dist 同步
 ├── package.json
 ├── LICENSE

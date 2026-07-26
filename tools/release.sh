@@ -4,7 +4,7 @@
 # Publishes a version to every channel a user can install from, so they can
 # never disagree about what "0.0.1-beta.2" contains:
 #
-#   npm            @jsray/core        → bundlers, Node, and the unpkg/jsDelivr CDNs
+#   npm            @jsray/core        → bundlers and Node
 #   git tag        v<version>         → the exact source of the release
 #   GitHub Release dist zip + digests → self-hosted installs
 #
@@ -112,6 +112,6 @@ echo
 echo "released $VERSION"
 echo "  npm     https://www.npmjs.com/package/@jsray/core/v/$VERSION"
 echo "  github  https://github.com/JSRayCore/JSRay/releases/tag/$TAG"
-echo "  cdn     https://unpkg.com/@jsray/core@$VERSION/dist/jsray.js"
+echo "  site    https://jsray.org/dist/jsray.js"
 echo
 echo "next: propagate to the integrations with 'npm run sync:integrations'"

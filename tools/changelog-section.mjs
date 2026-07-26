@@ -38,12 +38,14 @@ process.stdout.write(
     '```sh\n' +
     `npm install @jsray/core@${version}\n` +
     '```\n\n' +
-    `Or load it directly — no build step:\n\n` +
+    `Or load it from the official site — no build step:\n\n` +
     '```html\n' +
-    `<link rel="stylesheet" href="https://unpkg.com/@jsray/core@${version}/dist/themes/default.css">\n` +
-    `<link rel="stylesheet" href="https://unpkg.com/@jsray/core@${version}/dist/jsray.css">\n` +
-    `<script src="https://unpkg.com/@jsray/core@${version}/dist/jsray.js"></script>\n` +
+    `<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">\n` +
+    `<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">\n` +
+    `<script src="https://jsray.org/dist/jsray.js"></script>\n` +
     '```\n\n' +
+    `\`jsray.org/dist/\` tracks the current release. To hold this exact version, ` +
+    `serve the zip below yourself.\n\n` +
     `**Verifying this download**\n\n` +
     `\`SHA256SUMS.txt\` covers the zip. \`integrity.json\` carries the per-file digests ` +
     `every JSRay integration checks its bundled snapshot against, so a self-hosted copy ` +

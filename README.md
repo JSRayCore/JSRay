@@ -7,6 +7,7 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
+[![npm](https://img.shields.io/npm/v/@jsray/core/beta?label=npm)](https://www.npmjs.com/package/@jsray/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.0.1--beta.2-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
@@ -17,6 +18,36 @@
 > JavaScript-native code rendering kernel · zero dependencies · 23-class token semantics
 
 <sub>Public beta · Core renderer only · Platform plugins are separate repositories</sub>
+
+---
+
+## Install
+
+```sh
+npm install @jsray/core
+```
+
+```js
+const JSRay = require('@jsray/core');
+JSRay.highlight('const x = 42;', 'js');
+```
+
+TypeScript definitions are included — no `@types` package to install.
+
+Or drop it into a page with no build step at all:
+
+```html
+<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
+<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
+<script src="https://jsray.org/dist/jsray.js"></script>
+```
+
+`jsray.org/dist/` always serves the current release. **On a site you are not
+watching, pin the version instead** — every release is frozen at its own path:
+
+```html
+<script src="https://jsray.org/v/0.0.1-beta.2/jsray.js"></script>
+```
 
 ---
 
@@ -67,31 +98,19 @@ Each repository is published as it reaches its own beta. Every integration expos
 
 ```html
 <!-- 1. Pick a theme (palette).  More themes coming; "default" is the signature look. -->
-<link rel="stylesheet" href="dist/themes/default.css">
+<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
 <!-- 2. Load the core stylesheet (structure + token bindings). -->
-<link rel="stylesheet" href="dist/jsray.css">
+<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
 
 <body data-theme="dark">
   <pre><code class="language-js">
     function fibonacci(n) { return n; }
   </code></pre>
 </body>
-<script src="dist/jsray.js"></script>
-```
-
-### Install
-
-```sh
-npm install @jsray/core@beta
-```
-
-Or load it straight from the site — no build step, no bundler:
-
-```html
-<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
-<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
 <script src="https://jsray.org/dist/jsray.js"></script>
 ```
+
+Installed from npm, the same files are at `node_modules/@jsray/core/dist/`.
 
 Once loaded, JSRay **auto-scans** every `<code class="language-xxx">` element and colors it.
 Switch dark/light by setting `<body data-theme="light">` or `"dark"`.
@@ -165,7 +184,11 @@ Per-language grammar details: [docs/languages.md](docs/languages.md).
 
 ---
 
-## Project Structure
+## Repository Layout
+
+What follows is the **repository**. The npm package is the build output only —
+`dist/`, `types/`, `tokens.json`, `vocabulary.json`, and `integrity.json`;
+everything else here exists only when you clone.
 
 ```
 jsray/
@@ -186,6 +209,8 @@ jsray/
 ├── tools/              ← theme generator · version checks · integration sync
 ├── tests/              ← node --test suites
 ├── tokens.json         ← machine-readable palette (the default theme)
+├── vocabulary.json     ← the 23-token vocabulary every surface reads
+├── integrity.json      ← SHA-256 digests of the released dist/ assets
 ├── build.sh            ← src → dist sync
 ├── package.json
 ├── LICENSE
