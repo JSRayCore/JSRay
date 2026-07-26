@@ -33,3 +33,28 @@ When Core is ready for its first public beta:
 1. Change `version.json` to `0.0.1-beta.1` and `channel` to `beta`.
 2. Remove `"private": true` from `package.json` only when npm publishing is intended.
 3. Update the README badges and changelog status from internal test to public beta.
+
+## npm Publishing
+
+The package is published as [`@jsray/core`](https://www.npmjs.com/package/@jsray/core)
+from the `jsray` npm account. The unscoped name `jsray` is unavailable — npm
+rejects it as too similar to the existing `js-ray` package — and the `@jsray`
+scope has the advantage of reserving the whole family (`@jsray/wp`,
+`@jsray/vscode`, `@jsray/terminal`) in one go.
+
+| Channel | npm command | Users install with |
+|---|---|---|
+| beta | `npm publish --tag beta` | `npm install @jsray/core@beta` |
+| stable | `npm publish` | `npm install @jsray/core` |
+
+Scoped packages default to restricted access; `publishConfig.access: "public"`
+in package.json keeps every publish public without extra flags.
+
+Prerelease versions must ship under the `beta` tag so `latest` keeps
+pointing at the newest stable release. `package.json` drops
+`"private": true` at the beta promotion — `check:versions` only enforces
+that flag on the internal channel.
+
+Published contents are governed by the `files` array: `dist/`,
+`types/`, `tokens.json`, `assets/brand`, README, LICENSE, CHANGELOG.
+Verify with `npm pack --dry-run` before every publish.

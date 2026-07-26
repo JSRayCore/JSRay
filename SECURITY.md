@@ -24,5 +24,6 @@ Out of scope:
 
 | Version | Security updates |
 |---|---|
-| 0.0.1-internal.1 | ✅ Internal test |
-| Public beta / stable | Not yet released |
+| 0.0.1-beta.1 | ✅ Current public beta |
+| 0.0.1-internal.∗ | ❌ Superseded by the public beta |
+| Stable | Not yet released |

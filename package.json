@@ -1,21 +1,34 @@
 {
-  "name": "jsray",
+  "name": "@jsray/core",
   "version": "0.0.1-beta.1",
-  "private": true,
-  "description": "JavaScript-native code rendering kernel with 22-class token semantics and pluggable themes.",
+  "description": "JavaScript-native code rendering kernel with 23-class token semantics and pluggable themes.",
   "author": "Eric Liu <eric@jsray.org>",
+  "license": "MIT",
+  "homepage": "https://jsray.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JSRayCore/JSRay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JSRayCore/JSRay/issues"
+  },
   "main": "dist/jsray.js",
   "style": "dist/jsray.css",
   "types": "types/jsray.d.ts",
   "files": [
-    "assets/brand",
     "dist",
     "types",
     "tokens.json",
+    "assets/brand/*.svg",
+    "assets/brand/README.md",
     "README.md",
+    "README.zh-CN.md",
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "sh build.sh",
     "check:versions": "node tools/check-versions.mjs",
@@ -33,9 +46,7 @@
     "developer-tools",
     "themes"
   ],
-  "license": "MIT",
   "engines": {
     "node": ">=18"
-  },
-  "homepage": "https://jsray.org"
+  }
 }

@@ -79,6 +79,20 @@ Each repository is published as it reaches its own beta. Every integration expos
 <script src="dist/jsray.js"></script>
 ```
 
+### Install
+
+```sh
+npm install @jsray/core@beta
+```
+
+Or load it straight from the site — no build step, no bundler:
+
+```html
+<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
+<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
+<script src="https://jsray.org/dist/jsray.js"></script>
+```
+
 Once loaded, JSRay **auto-scans** every `<code class="language-xxx">` element and colors it.
 Switch dark/light by setting `<body data-theme="light">` or `"dark"`.
 When no language class is present, `JSRay.detectLanguage()` can infer common snippets — shebang lines resolve the interpreter directly, and signal scoring covers PHP, Go, Swift, Kotlin, Dart, Lua, SQL, YAML, HTML, CSS, JavaScript, Python, shell, Elixir, Scala, Objective-C, R, Perl, PowerShell, Haskell, GraphQL, TOML, Dockerfile, Makefile, diff, and more.

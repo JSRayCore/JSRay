@@ -79,6 +79,20 @@ JSRay 把 6 个标识符族**视觉分离**，让你用余光就能区分参数�
 <script src="dist/jsray.js"></script>
 ```
 
+### 安装
+
+```sh
+npm install @jsray/core@beta
+```
+
+也可以直接从官网引入,无需构建工具:
+
+```html
+<link rel="stylesheet" href="https://jsray.org/dist/themes/default.css">
+<link rel="stylesheet" href="https://jsray.org/dist/jsray.css">
+<script src="https://jsray.org/dist/jsray.js"></script>
+```
+
 引入后会**自动扫描** `<code class="language-xxx">` 元素并染色。
 明暗切换：把 `<body>` 的 `data-theme` 改为 `"light"` 或 `"dark"`。
 没有语言 class 时，`JSRay.detectLanguage()` 可以自动识别常见片段——shebang 首行直接解析解释器,特征打分覆盖 PHP、Go、Swift、Kotlin、Dart、Lua、SQL、YAML、HTML、CSS、JavaScript、Python、Shell、Elixir、Scala、Objective-C、R、Perl、PowerShell、Haskell、GraphQL、TOML、Dockerfile、Makefile、diff 等。
