@@ -2,7 +2,7 @@
   "name": "@jsray/core",
   "version": "0.0.1-beta.2",
   "description": "JavaScript-native code rendering kernel with 23-class token semantics and pluggable themes.",
-  "author": "Eric Liu <eric@jsray.org>",
+  "author": "Jie <jie@jsray.org>",
   "license": "MIT",
   "homepage": "https://jsray.org",
   "repository": {

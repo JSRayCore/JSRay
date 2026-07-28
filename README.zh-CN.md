@@ -234,4 +234,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-由 **Eric Liu** 维护 · [JSRay.org](https://jsray.org)
+由 **Jie** 维护 · [JSRay.org](https://jsray.org)

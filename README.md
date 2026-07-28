@@ -237,4 +237,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-Made by **Eric Liu** · [JSRay.org](https://jsray.org)
+Made by **Jie** · [JSRay.org](https://jsray.org)
