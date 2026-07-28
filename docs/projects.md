@@ -73,8 +73,19 @@ The public website keeps the brand concentrated under `jsray.org`:
 
 - `https://jsray.org`: project home — the live demo, theme switcher, and Core renderer.
 - `https://jsray.org/studio.html`: in-browser theme studio.
-- `https://jsray.org/dist/`: released Core assets, usable directly as a CDN
-  (`jsray.org/dist/jsray.js`, `jsray.org/dist/themes/<name>.css`).
+- `https://jsray.org/dist/`: the current release's Core assets
+  (`jsray.org/dist/jsray.js`, `jsray.org/dist/themes/<name>.css`). This path
+  moves on every release, which is right for the demo and wrong for a site
+  nobody is watching.
+- `https://jsray.org/v/<version>/`: the same files frozen per release
+  (`jsray.org/v/0.0.1-beta.2/jsray.js`). A page that pins here keeps rendering
+  the way it did the day it was written.
+
+`tools/build-site.sh` emits both. Cloudflare replaces the whole asset bundle on
+each deploy, so previously published versions cannot survive from the last
+build — they are restored from npm, which is already the record of what
+shipped. Losing the network degrades to "only the current version is pinnable"
+rather than failing the deploy.
 
 Per-integration routes are added as each integration ships — no route is
 published before the product behind it exists.
