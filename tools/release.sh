@@ -60,7 +60,21 @@ echo "==> building and verifying"
 sh build.sh >/dev/null
 node tools/check-versions.mjs
 node tools/integrity.mjs --check
-npm test 2>&1 | grep -E '^ℹ (tests|pass|fail)'
+
+# `npm test | grep` would report grep's exit status, not the suite's — grep
+# matches the summary line whether it says "fail 0" or "fail 9", so `set -e`
+# never fired and a red suite could still be published. `pipefail` would fix
+# it in bash but this is /bin/sh, which on Debian is dash and has no such
+# option. Capturing the log keeps the concise summary without the pipe.
+TEST_LOG=$(mktemp)
+if ! npm test >"$TEST_LOG" 2>&1; then
+  echo "error: tests failed — nothing published." >&2
+  cat "$TEST_LOG" >&2
+  rm -f "$TEST_LOG"
+  exit 1
+fi
+grep -E '^ℹ (tests|pass|fail)' "$TEST_LOG" || true
+rm -f "$TEST_LOG"
 
 # The build must not have changed anything tracked, or dist/ was stale in git.
 if [ -n "$(git status --porcelain)" ]; then

@@ -23,6 +23,7 @@ mkdir -p _site
 # Demo becomes the site root.
 cp demo/index.html   _site/index.html
 cp demo/studio.html  _site/studio.html
+cp demo/footer.css   _site/footer.css
 cp -R demo/studio    _site/studio
 
 cp -R dist           _site/dist

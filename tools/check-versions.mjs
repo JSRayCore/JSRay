@@ -53,7 +53,23 @@ if (channel === 'internal') {
 }
 includes('CHANGELOG.md', `## [${version}]`);
 includes('docs/versioning.md', `Current version: \`${version}\``);
+includes('docs/versioning.zh-CN.md', `当前版本:\`${version}\``);
 includes('docs/projects.md', 'JSRay Core');
+includes('docs/projects.zh-CN.md', 'JSRay Core');
+
+// The supported-versions table is a promise to anyone deciding whether to
+// report privately. It sat on beta.1 through the whole beta.2 cycle.
+includes('SECURITY.md', `| ${version} | ✅`, `${version} in the supported-versions table`);
+
+// Docs that quote a pinned asset URL go stale silently — the page keeps
+// working, it just teaches the wrong version. Both languages, both files.
+for (const path of ['README.md', 'README.zh-CN.md', 'docs/projects.md', 'docs/projects.zh-CN.md']) {
+  includes(path, `/v/${version}/`, `the pinned-version example /v/${version}/`);
+}
+
+// Both machine-readable palettes carry the version integrations read back.
+expect(json('vocabulary.json').version === version,
+  `vocabulary.json version ${json('vocabulary.json').version} does not match ${version}`);
 
 includes('src/jsray.js', `version: '${version}',`, 'runtime JSRay.version matching version.json');
 
