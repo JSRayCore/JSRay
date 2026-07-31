@@ -498,3 +498,26 @@ test('ship: everything published is reachable by name', () => {
   assert.deepEqual(unreachable, [],
     'these files ship but cannot be imported — add them to exports or stop publishing them');
 });
+
+test('docs: the contributing guide states the commit conventions it asks for', () => {
+  // The section used to be three examples that contradicted each other — two
+  // plain sentences and one with a `docs:` prefix — and cited a 22-token table
+  // that has had 23 tokens since before this repository was public. A
+  // convention nobody can read off the page is not a convention.
+  const guide = read('CONTRIBUTING.md');
+
+  assert.match(guide, /60 characters/, 'no subject-length guidance');
+  assert.match(guide, /\(#N\)|\(#\d+\)/, 'the pull request number is not mentioned');
+  assert.match(guide, /--subject/, 'nothing warns that --subject drops the PR number');
+  assert.doesNotMatch(guide, /22-token/, 'stale token count in the examples');
+
+  // The examples have to obey the rule they illustrate.
+  const fences = [...guide.matchAll(/```\n([\s\S]*?)```/g)].map((m) => m[1]);
+  const subjects = fences
+    .map((f) => f.split('\n')[0].trim())
+    .filter((s) => s && !s.startsWith('#') && !s.includes('$') && !s.startsWith('npm'));
+
+  for (const s of subjects) {
+    assert.ok(s.length <= 60, `a commit example is ${s.length} characters: "${s}"`);
+  }
+});
