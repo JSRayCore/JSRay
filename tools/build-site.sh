@@ -24,6 +24,7 @@ mkdir -p _site
 cp demo/index.html   _site/index.html
 cp demo/studio.html  _site/studio.html
 cp demo/footer.css   _site/footer.css
+cp _headers          _site/_headers
 cp -R demo/studio    _site/studio
 
 cp -R dist           _site/dist
@@ -35,8 +36,17 @@ cp tokens.json       _site/tokens.json
 # assets with ../ prefixes; at the site root those must become same-level paths.
 # Portable in-place edit: BSD sed (macOS) needs `-i ''`, GNU sed (Linux CI)
 # rejects it — use a temp file so both platforms work.
+#
+# The .html suffixes go too. Cloudflare serves these pages at extensionless
+# paths and 307s /studio.html → /studio, so every link written for the local
+# demo cost a visitor an extra round trip. The files keep their names — only
+# the links between them change, and only in the deployed copy, so opening
+# demo/index.html straight from the repo still works.
 for f in _site/index.html _site/studio.html; do
-  sed -e 's|\.\./dist/|dist/|g' -e 's|\.\./assets/|assets/|g' "$f" > "$f.tmp"
+  sed -e 's|\.\./dist/|dist/|g' \
+      -e 's|\.\./assets/|assets/|g' \
+      -e 's|href="studio\.html"|href="studio"|g' \
+      -e 's|href="index\.html"|href="/"|g' "$f" > "$f.tmp"
   mv "$f.tmp" "$f"
 done
 # studio.js fetches ../tokens.json from studio/, which resolves to the root — correct as-is.
@@ -51,6 +61,11 @@ done
 VERSION=$(node -p "require('./version.json').version")
 mkdir -p "_site/v/$VERSION"
 cp -R dist/* "_site/v/$VERSION/"
+# The digests travel with the files they describe. A page pinning this version
+# needs them to write a Subresource Integrity attribute, and sending someone to
+# npm or a GitHub release for a hash they could be reading from the same origin
+# as the script is a step that earns nothing.
+cp integrity.json "_site/v/$VERSION/integrity.json"
 
 PUBLISHED=$(npm view @jsray/core versions --json 2>/dev/null \
   | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const v=JSON.parse(d);process.stdout.write((Array.isArray(v)?v:[v]).join(' '));}catch(e){}})" || true)
@@ -70,6 +85,9 @@ else
         if [ -d "$TMP/x-$v/package/dist" ]; then
           mkdir -p "_site/v/$v"
           cp -R "$TMP/x-$v/package/dist/"* "_site/v/$v/"
+          # Releases from before integrity.json existed simply do not have one.
+          [ -f "$TMP/x-$v/package/integrity.json" ] \
+            && cp "$TMP/x-$v/package/integrity.json" "_site/v/$v/integrity.json"
         fi
       fi
     else
