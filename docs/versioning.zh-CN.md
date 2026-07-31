@@ -51,7 +51,19 @@ JSRay Core 是独立的 JavaScript 原生代码渲染内核。平台插件(包�
 带作用域的包默认是受限访问；`package.json` 里的 `publishConfig.access: "public"`
 让每次发布都保持公开，不必额外加参数。
 
-预发布版本必须发在 `beta` 标签下，这样 `latest` 才会一直指向最新的稳定版。
+预发布版本发在 `beta` 标签下，这样它永远不会把稳定版从默认安装的位置上挤掉。
+
+**但 1.0 之前根本没有稳定版可挤,** 而 `latest` 必须指向某个版本 —— 无论有没有
+人做决定，npm 都会给它挑一个。此时"不去动它"并不等于"没有默认版本"，而是默认
+版本被冻结在最早占住这个标签的那个预发布版上。beta.2 到 beta.3 之间发生的正是
+这件事:`npm install @jsray/core`（README 里教的那条命令）一直装的是
+0.0.1-beta.2 —— 比当前发布版更旧，而且带着一个拒绝服务漏洞 —— 修复只在
+`@beta` 里。
+
+所以：只要 registry 上还不存在稳定版，`tools/release.sh` 就会把 `latest` 一并
+指向最新的预发布版。它查的是 registry 而不是某个开关，因此 1.0 发布的那一刻
+这个行为会自动结束：从此 `latest` 归稳定版所有，预发布版再也拿不回去。
+
 `package.json` 在晋级 beta 时去掉 `"private": true` —— `check:versions` 只在
 internal 通道上强制该标记。
 

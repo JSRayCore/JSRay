@@ -26,15 +26,42 @@ VERSION=$(node -p "require('./version.json').version")
 CHANNEL=$(node -p "require('./version.json').channel")
 TAG="v$VERSION"
 
-# npm dist-tag: a prerelease must never become the default install. Only a
-# stable release is allowed to take `latest`.
+# npm dist-tag: a prerelease must never displace a stable release as the
+# default install. Only a stable one takes `latest` on publish.
 case "$CHANNEL" in
   stable) NPM_TAG=latest ;;
   beta)   NPM_TAG=beta ;;
   *)      echo "error: channel '$CHANNEL' is not publishable — only beta and stable are." >&2; exit 1 ;;
 esac
 
-echo "==> releasing JSRay Core $VERSION ($CHANNEL → npm tag '$NPM_TAG')"
+# `latest` has to point somewhere, and npm picks it whether or not anyone
+# decides. Before 1.0 there is no stable release to point it at, so leaving it
+# alone does not mean "no default" — it means the default stays frozen on
+# whichever prerelease happened to claim it first. That is how
+# `npm install @jsray/core`, the command in the README, kept handing out
+# 0.0.1-beta.2 with a denial of service in it after beta.3 shipped.
+#
+# So: while no stable version exists, `latest` follows the newest prerelease.
+# The moment one exists, this stops — a prerelease will never take `latest`
+# back from a stable release.
+MOVE_LATEST=0
+if [ "$NPM_TAG" = "beta" ]; then
+  STABLE_COUNT=$(npm view "@jsray/core" versions --json 2>/dev/null \
+    | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{
+        try { const v = JSON.parse(s); process.stdout.write(String(
+          (Array.isArray(v) ? v : [v]).filter(x => !x.includes('-')).length)); }
+        catch (e) { process.stdout.write('0'); }
+      })" 2>/dev/null || echo 0)
+  if [ "${STABLE_COUNT:-0}" = "0" ]; then
+    MOVE_LATEST=1
+  fi
+fi
+
+if [ "$MOVE_LATEST" = "1" ]; then
+  echo "==> releasing JSRay Core $VERSION ($CHANNEL → npm tags 'beta' and 'latest' — no stable release exists yet)"
+else
+  echo "==> releasing JSRay Core $VERSION ($CHANNEL → npm tag '$NPM_TAG')"
+fi
 
 # --- gates ------------------------------------------------------------------
 # Everything that can be wrong is checked before anything is published, because
@@ -105,6 +132,15 @@ fi
 # --- publish ----------------------------------------------------------------
 echo "==> publishing to npm"
 npm publish --tag "$NPM_TAG"
+
+if [ "$MOVE_LATEST" = "1" ]; then
+  # Deliberately after publish: the version has to exist before a tag can
+  # point at it. If this step fails the package is still published correctly
+  # and only the default install lags, which one command repairs:
+  #   npm dist-tag add @jsray/core@$VERSION latest
+  echo "==> pointing 'latest' at $VERSION (no stable release exists yet)"
+  npm dist-tag add "@jsray/core@$VERSION" latest
+fi
 
 echo "==> tagging $TAG"
 git tag -a "$TAG" -m "JSRay Core $VERSION"

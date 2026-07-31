@@ -376,3 +376,26 @@ test('site: the footer does not link to integrations that do not exist yet', () 
     }
   }
 });
+
+test('release: while no stable version exists, latest follows the newest prerelease', () => {
+  // `npm install @jsray/core` installed 0.0.1-beta.2 — older than the current
+  // release and carrying a denial of service — for as long as release.sh left
+  // `latest` alone. The tag has to point somewhere; not choosing means the
+  // first prerelease to claim it keeps it forever.
+  const script = read('tools/release.sh');
+
+  assert.match(script, /npm dist-tag add "@jsray\/core@\$VERSION" latest/,
+    'release.sh no longer moves the latest tag');
+  assert.match(script, /MOVE_LATEST=1/, 'the no-stable-yet branch is gone');
+
+  // It must key off the registry, not a flag someone has to remember to flip,
+  // so the behaviour ends by itself when 1.0 ships.
+  assert.match(script, /npm view "@jsray\/core" versions/,
+    'the decision should read the registry rather than a local switch');
+  assert.match(script, /filter\(x => !x\.includes\('-'\)\)/,
+    'stable versions are the ones without a prerelease suffix');
+
+  // And a prerelease must still never take latest from a stable release.
+  assert.match(script, /if \[ "\$NPM_TAG" = "beta" \]/,
+    'the move must be scoped to prerelease publishes');
+});

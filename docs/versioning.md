@@ -52,10 +52,25 @@ scope has the advantage of reserving the whole family (`@jsray/wp`,
 Scoped packages default to restricted access; `publishConfig.access: "public"`
 in package.json keeps every publish public without extra flags.
 
-Prerelease versions must ship under the `beta` tag so `latest` keeps
-pointing at the newest stable release. `package.json` drops
-`"private": true` at the beta promotion — `check:versions` only enforces
-that flag on the internal channel.
+Prerelease versions ship under the `beta` tag so they never displace a
+stable release as the default install.
+
+**Before 1.0 there is no stable release to displace,** and `latest` has to
+point somewhere — npm picks it whether or not anyone decides. Leaving it
+alone does not mean "no default"; it means the default stays frozen on
+whichever prerelease claimed it first. That is exactly what happened
+between beta.2 and beta.3: `npm install @jsray/core`, the command in the
+README, kept installing 0.0.1-beta.2 — older than the current release and
+carrying a denial of service — while `@beta` had the fix.
+
+So while no stable version exists on the registry, `tools/release.sh`
+points `latest` at the newest prerelease as well. It checks the registry
+rather than a flag, so the behaviour ends by itself the moment 1.0 is
+published: from then on `latest` belongs to stable releases and a
+prerelease will never take it back.
+
+`package.json` drops `"private": true` at the beta promotion —
+`check:versions` only enforces that flag on the internal channel.
 
 Published contents are governed by the `files` array: `dist/`, `types/`,
 `tokens.json`, `vocabulary.json`, `integrity.json`, `assets/brand`, README,
