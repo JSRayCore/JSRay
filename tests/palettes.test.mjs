@@ -216,3 +216,31 @@ test('palettes: applyTheme and the generated CSS agree on every surface', () => 
     }
   }
 });
+
+test('vocabulary: the theme studio maps tokens the same way the runtime does', () => {
+  // studio.js carries its own ordered token list, because it also decides
+  // grouping and labels — but the cssVar half of each entry is the vocabulary
+  // restated, and a wrong one silently produces a theme whose variables no
+  // stylesheet reads. This is the same drift THEME_ALIAS is guarded against;
+  // the studio was simply the copy nobody had checked.
+  const src = read('demo/studio/studio.js');
+  const entries = [...src.matchAll(/key:\s*'([\w.$]+)',\s*label:[^,]+,\s*cssVar:\s*'([\w-]+)'/g)];
+
+  assert.ok(entries.length > 20, 'studio token table failed to parse');
+
+  for (const [, key, cssVar] of entries) {
+    if (key.startsWith('$')) {
+      const surface = key.slice(1);
+      assert.equal(cssVar, VOCABULARY.surfaces[surface],
+        `studio maps surface "${surface}" to --jr-${cssVar}`);
+      continue;
+    }
+    assert.equal(cssVar, VOCABULARY.tokens[key], `studio maps "${key}" to --jr-${cssVar}`);
+  }
+
+  // Every token has to be offered, or a palette built here is incomplete.
+  const covered = new Set(entries.map(([, k]) => k));
+  for (const key of Object.keys(VOCABULARY.tokens)) {
+    assert.ok(covered.has(key), `the studio has no picker for "${key}"`);
+  }
+});

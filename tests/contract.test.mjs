@@ -463,3 +463,38 @@ test('site: the pinned paths carry the digests the README points at', () => {
   assert.match(read('README.md'), /crossorigin="anonymous"/,
     'an SRI example without crossorigin= would leave the script blocked');
 });
+
+test('ship: everything published is reachable by name', () => {
+  // `files` and `exports` answer different questions — what is in the tarball,
+  // and what a consumer may import — and nothing made them agree. themes/*.json
+  // was added to `files` so integrations could read the palette sources, and
+  // was unreachable through `exports`: on disk in node_modules, and
+  // ERR_PACKAGE_PATH_NOT_EXPORTED to anyone who asked for it by name.
+  const pkg = JSON.parse(read('package.json'));
+  const packed = JSON.parse(
+    execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8' })
+  )[0].files.map((f) => f.path);
+
+  const patterns = Object.keys(pkg.exports)
+    .filter((k) => k !== '.')
+    .map((k) => new RegExp('^' + k.replace(/^\.\//, '').replace(/[.]/g, '\\.').replace(/\*/g, '.*') + '$'));
+
+  // A file can also be reachable as the target of a condition rather than as a
+  // subpath of its own: types/jsray.d.ts is resolved through the "types"
+  // condition on ".", and nobody imports it by path.
+  const targets = new Set();
+  const collect = (node) => {
+    if (typeof node === 'string') targets.add(node.replace(/^\.\//, ''));
+    else if (node && typeof node === 'object') Object.values(node).forEach(collect);
+  };
+  collect(pkg.exports);
+
+  // Documentation and licence text is read, not imported; the rest is API.
+  const prose = /^(README|CHANGELOG|LICENSE|assets\/)/;
+  const unreachable = packed.filter(
+    (f) => !prose.test(f) && !targets.has(f) && !patterns.some((p) => p.test(f))
+  );
+
+  assert.deepEqual(unreachable, [],
+    'these files ship but cannot be imported — add them to exports or stop publishing them');
+});

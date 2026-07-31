@@ -21,6 +21,7 @@
       "default": "./dist/jsray.js"
     },
     "./dist/*": "./dist/*",
+    "./themes/*": "./themes/*",
     "./tokens.json": "./tokens.json",
     "./vocabulary.json": "./vocabulary.json",
     "./integrity.json": "./integrity.json",
