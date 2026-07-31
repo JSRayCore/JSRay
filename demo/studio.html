@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="../dist/themes/default.css?v=5">
 <link rel="stylesheet" href="../dist/jsray.css?v=5">
 <link rel="stylesheet" href="studio/studio.css?v=5">
+<link rel="stylesheet" href="footer.css?v=1">
 </head>
 <body data-theme="dark">
 
@@ -61,7 +62,68 @@
 
 </main>
 
+<footer class="site-footer">
+  <div class="site-footer__brand">
+    <p class="site-footer__name">JSRay</p>
+    <p class="site-footer__tagline">JavaScript-native code rendering kernel · zero dependencies, zero build</p>
+  </div>
+
+  <div class="site-footer__cols">
+    <div class="site-footer__col">
+      <h3>Install</h3>
+      <ul>
+        <li><a href="https://www.npmjs.com/package/@jsray/core"><code>npm install @jsray/core</code></a></li>
+        <li><a href="../dist/jsray.js">Load from jsray.org/dist/</a></li>
+        <li><a href="https://github.com/JSRayCore/JSRay#install">Pin a version</a></li>
+      </ul>
+    </div>
+
+    <div class="site-footer__col">
+      <h3>Documentation</h3>
+      <ul>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/docs/tokens.md">Token semantics</a></li>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/docs/languages.md">Language support</a></li>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/docs/development.md">Development guide</a></li>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/docs/versioning.md">Versioning</a></li>
+      </ul>
+    </div>
+
+    <div class="site-footer__col">
+      <h3>Ecosystem</h3>
+      <ul>
+        <!-- Listed, not linked: each repository opens at its own beta, and a
+             footer link to a repository that does not exist yet is a 404. -->
+        <li class="site-footer__soon">WordPress · <code>jsray-wp</code><span class="tag">soon</span></li>
+        <li class="site-footer__soon">VS Code · <code>jsray-vscode</code><span class="tag">soon</span></li>
+        <li class="site-footer__soon">Terminal · <code>jsray-terminal</code><span class="tag">soon</span></li>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/docs/projects.md">How integrations work</a></li>
+      </ul>
+    </div>
+
+    <div class="site-footer__col">
+      <h3>Project</h3>
+      <ul>
+        <li><a href="https://github.com/JSRayCore/JSRay">GitHub</a></li>
+        <li><a href="https://www.npmjs.com/package/@jsray/core">npm</a></li>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/CHANGELOG.md">Changelog</a></li>
+        <li><a href="https://github.com/JSRayCore/JSRay/blob/main/SECURITY.md">Security policy</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="site-footer__base">
+    <p>© 2026 JSRay · MIT · <code data-jsray-version>0.0.1-beta.3</code></p>
+    <p>Made by Jie</p>
+  </div>
+</footer>
+
 <script src="../dist/jsray.js?v=5"></script>
+<script>
+  // Same as the demo page: correct without JS, corrected from the engine.
+  document.querySelectorAll("[data-jsray-version]").forEach(el => {
+    if (window.JSRay && JSRay.version) el.textContent = "v" + JSRay.version;
+  });
+</script>
 <script type="module" src="studio/studio.js?v=5"></script>
 
 </body>

@@ -1,6 +1,6 @@
 /**
  * JSRay · type declarations
- * CommonJS usage:   const JSRay = require('jsray');
+ * CommonJS usage:   const JSRay = require('@jsray/core');
  * Browser global:   after loading jsray.js, use window.JSRay
  */
 
@@ -24,10 +24,10 @@ declare namespace JSRay {
   /** A renderer-agnostic stream produced by `tokenize`. */
   type TokenStream = Array<string | Token>;
 
-  /** Grammars for every registered language */
-  /** Runtime version string, matches version.json (e.g. "0.0.1-internal.2"). */
+  /** Runtime version string, matches version.json (e.g. "0.0.1-beta.3"). */
   const version: string;
 
+  /** Grammars for every registered language, keyed by name and by alias. */
   const languages: Record<string, Grammar>;
 
   /** Normalize aliases such as `language-c++`, `c#`, `yml`, or `py`. */
@@ -54,8 +54,12 @@ declare namespace JSRay {
 
   /**
    * Apply a theme block (matching tokens.json shape) at runtime by
-   * setting `--jr-*` CSS variables on the given root element
-   * (defaults to `document.documentElement`).
+   * setting `--jr-*` CSS variables on the given root element.
+   *
+   * Defaults to the first element carrying `data-theme` — usually `<body>` —
+   * falling back to `document.documentElement`. That element is where theme
+   * stylesheets set the same variables, so writing there is what makes a
+   * runtime palette win; variables set on an ancestor would be shadowed.
    */
   function applyTheme(theme: ThemeBlock, root?: HTMLElement): void;
 

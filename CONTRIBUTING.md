@@ -7,7 +7,7 @@ Issues and PRs for JSRay are welcome.
 1. Fork & clone
 2. Edit `src/jsray.js` or `src/jsray.css`
 3. Run `sh build.sh` to sync into `dist/` (currently a plain `cp`; minification can be layered on later)
-4. Run the tests: `npm test` (requires Node ≥ 18)
+4. Run the tests: `npm test` (requires Node ≥ 20)
 5. Preview locally: serve the project root with any static server and open `/demo/index.html`
 
 ## Adding a language
@@ -58,12 +58,12 @@ Every change lands the same way:
 ```sh
 git checkout -b my-change
 # ... work, then:
-npm test && node tools/check-versions.mjs
+npm test && node tools/check-versions.mjs && node tools/integrity.mjs --check
 git push origin my-change
 gh pr create --fill
 ```
 
-CI runs the suite on Node 18, 20, and 22. All three must pass before the PR can
+CI runs the suite on Node 20, 22, and 24. All three must pass before the PR can
 merge; the branch also has to be up to date with `main`.
 
 - One PR per concern, to keep reviews easy.

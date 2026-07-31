@@ -9,7 +9,7 @@
 
 [![npm](https://img.shields.io/npm/v/@jsray/core/beta?label=npm)](https://www.npmjs.com/package/@jsray/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1--beta.2-lightgrey)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.0.1--beta.3-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
@@ -46,14 +46,14 @@ Or drop it into a page with no build step at all:
 watching, pin the version instead** — every release is frozen at its own path:
 
 ```html
-<script src="https://jsray.org/v/0.0.1-beta.2/jsray.js"></script>
+<script src="https://jsray.org/v/0.0.1-beta.3/jsray.js"></script>
 ```
 
 ---
 
 ## Features
 
-JSRay visually separates **six identifier families** so you can tell parameters, constants, builtins, function declarations and calls apart at a glance:
+JSRay visually separates **nine identifier families** so you can tell parameters, constants, builtins, function declarations and calls apart at a glance:
 
 | Category | Dark | Light | Intuition |
 |---|---|---|---|
@@ -143,7 +143,32 @@ JSRay.highlightAll();
 
 // Guess a language when a code block has no class
 const lang = JSRay.detectLanguage('SELECT * FROM posts;');
+
+// Resolve an alias to the name the grammars are keyed by
+JSRay.normalizeLanguage('c++');   // → 'cpp'
+
+// Swap the palette at runtime, without loading another stylesheet
+JSRay.applyTheme(palette.themes.dark);
 ```
+
+#### Rendering somewhere other than HTML
+
+`highlight()` is `tokenize()` followed by `render()`. Call them separately and
+the middle step is yours — the token stream carries the semantics with no
+opinion about the output format, which is how the terminal renderer emits ANSI
+instead of `<span>`:
+
+```js
+const stream = JSRay.tokenize('const x = 42;', 'js');
+// [ { type: 'tk-keyword', content: 'const' }, ' ', … ]
+
+JSRay.render(stream);            // the built-in HTML renderer
+stream.map(toAnsi).join('');     // or walk it yourself
+```
+
+Each element is either a plain string (no token) or `{ type, content }`, where
+`content` is a string or a nested stream. `type` is one of the token classes in
+[docs/tokens.md](docs/tokens.md).
 
 ---
 
@@ -155,14 +180,14 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 | Python | `language-python` `language-py` |
 | PHP | `language-php` |
 | Go | `language-go` |
-| Swift / Kotlin / Dart / Lua | `language-swift` `language-kotlin` `language-kt` `language-dart` `language-lua` |
+| Swift / Kotlin / Dart / Lua | `language-swift` `language-kotlin` `language-kt` `language-kts` `language-dart` `language-lua` |
 | Java | `language-java` |
 | C / C++ / C# | `language-c` `language-cpp` `language-csharp` `language-cs` |
 | Ruby | `language-ruby` `language-rb` |
 | Rust | `language-rust` `language-rs` |
 | HTML / XML / SVG / Vue | `language-html` `language-xml` `language-svg` `language-vue` |
-| CSS / SCSS / SASS / LESS | `language-css` `language-scss` |
-| JSON / JSONC | `language-json` |
+| CSS / SCSS / SASS / LESS | `language-css` `language-scss` `language-sass` `language-less` |
+| JSON / JSONC | `language-json` `language-jsonc` |
 | Shell / Bash / Zsh | `language-bash` `language-shell` |
 | Markdown | `language-md` `language-markdown` |
 | SQL | `language-sql` |
@@ -175,7 +200,7 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 | Elixir | `language-elixir` `language-ex` `language-exs` |
 | Haskell | `language-haskell` `language-hs` |
 | GraphQL | `language-graphql` `language-gql` |
-| TOML / INI | `language-toml` `language-ini` `language-properties` |
+| TOML / INI | `language-toml` `language-ini` `language-properties` `language-cfg` `language-conf` |
 | Dockerfile | `language-dockerfile` `language-docker` |
 | Makefile | `language-makefile` `language-make` |
 | Diff / Patch | `language-diff` `language-patch` |
@@ -194,10 +219,12 @@ everything else here exists only when you clone.
 jsray/
 ├── src/                ← development sources
 │   ├── jsray.js
-│   └── jsray.css
+│   ├── jsray.css
+│   └── themes/         ← generated palette stylesheets
 ├── dist/               ← release artifacts (zero-build, currently = src copy)
 │   ├── jsray.js
-│   └── jsray.css
+│   ├── jsray.css
+│   └── themes/         ← default.css, aurora.css, ember.css, fjord.css
 ├── themes/             ← additional palette sources (aurora, ember, fjord)
 ├── demo/
 │   ├── index.html      ← visual demo across sample languages
@@ -205,7 +232,9 @@ jsray/
 ├── docs/
 │   ├── development.md  ← ecosystem-wide development guide
 │   ├── tokens.md       ← 23-token semantic reference
-│   └── languages.md    ← per-language rule examples
+│   ├── languages.md    ← per-language rule examples
+│   ├── projects.md     ← project split and release boundaries
+│   └── versioning.md   ← version channels and what they promise
 ├── tools/              ← theme generator · version checks · integration sync
 ├── tests/              ← node --test suites
 ├── tokens.json         ← machine-readable palette (the default theme)
@@ -224,7 +253,7 @@ Zero dependencies, zero build. `build.sh` currently only does `cp`; minification
 ## Design Principles
 
 1. **Semantics before aesthetics.** Color serves the goal of letting an engineer recognize what something *is* at a glance — never sacrificed for visual taste.
-2. **Six-family separation.** The variable category is no longer flattened to a single white; parameters, system, constants, and locals each get their own hue and weight.
+2. **Nine-family separation.** The variable category is no longer flattened to a single white; parameters, system, constants, and locals each get their own hue and weight.
 3. **Zero dependencies.** One `.js` file plus one `.css` file is all it takes — no build tooling or framework lock-in.
 
 See [docs/tokens.md](docs/tokens.md).

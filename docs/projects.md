@@ -1,5 +1,7 @@
 # JSRay Project Boundary
 
+**English** · [简体中文](projects.zh-CN.md)
+
 This repository is **JSRay Core**.
 
 JSRay Core is the standalone JavaScript-native code rendering kernel. Platform plugins are separate products and should live in separate git repositories.
@@ -78,7 +80,7 @@ The public website keeps the brand concentrated under `jsray.org`:
   moves on every release, which is right for the demo and wrong for a site
   nobody is watching.
 - `https://jsray.org/v/<version>/`: the same files frozen per release
-  (`jsray.org/v/0.0.1-beta.2/jsray.js`). A page that pins here keeps rendering
+  (`jsray.org/v/0.0.1-beta.3/jsray.js`). A page that pins here keeps rendering
   the way it did the day it was written.
 
 `tools/build-site.sh` emits both. Cloudflare replaces the whole asset bundle on

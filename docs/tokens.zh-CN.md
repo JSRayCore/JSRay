@@ -110,12 +110,24 @@ Markdown 单独区分：
 
 ---
 
+## 结构性 class
+
+并非每个语法产出的 class 都携带颜色。
+
+| Class | 用途 |
+|---|---|
+| `tk-scope` | 包裹参数列表，让其中的名字能被当作参数着色。**有意不着色** —— 它的存在是给嵌套规则一个附着点，给包装层上色反而会把周围的标点一起染上。 |
+
+自己遍历 token 流的渲染器应当让 `tk-scope` 透传，给它的子节点上色，而不是给它本身上色。
+
+---
+
 ## CSS 变量速查
 
 所有 token 颜色都通过 CSS 变量驱动，便于覆盖：
 
 ```css
-:root {
+[data-theme="dark"] {
   --jr-keyword:     #D08BFC;
   --jr-fn-decl:     #5DD8B0;
   --jr-var-param:   #F2B870;
@@ -123,12 +135,20 @@ Markdown 单独区分：
 }
 ```
 
-完整列表见 [src/jsray.css](../src/jsray.css) 顶部。
+`jsray.css` 只**消费**这些变量 —— 它把 `.tk-keyword` 绑定到
+`var(--jr-keyword)`，仅此而已。变量的值在主题样式表里，一个调色板一个文件：
+[src/themes/default.css](../src/themes/default.css)。正是这个拆分，让你换一个
+`<link>` 就能换整套配色。
 
 ---
 
 ## 想自定义？
 
-1. 复制 `src/jsray.css` 顶部的两块 `:root` / `[data-theme="light"]`
-2. 改其中任意 `--jr-*` 变量
-3. 用你的覆盖样式表覆盖即可，无需 fork JS 引擎
+1. 复制 `dist/themes/default.css` —— 里面同时有 `[data-theme="dark"]` 和
+   `[data-theme="light"]` 两块，每块 23 个 token 变量 + 5 个表面变量
+2. 改其中任意 `--jr-*` 的值
+3. 用你的副本替换原主题，`jsray.css` 保持不动 —— 无需 fork JS 引擎
+
+如果想反过来"生成"主题而不是手改 CSS：按 [tokens.json](../tokens.json) 的结构
+写一份调色板 JSON，运行 `node tools/generate-theme.mjs` 即可。这也正是
+`JSRay.applyTheme()` 接受的结构，同一份文件可以直接用于运行时切换。
