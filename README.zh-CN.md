@@ -48,6 +48,30 @@ JSRay.highlight('const x = 42;', 'js');
 <script src="https://jsray.org/v/0.0.1-beta.3/jsray.js"></script>
 ```
 
+### 校验你加载到的东西
+
+锁定版本的地址说明你**要**的是哪个版本,不说明你**拿到**的是哪些字节。加上
+[Subresource Integrity](https://developer.mozilla.org/docs/Web/Security/Subresource_Integrity)
+哈希,浏览器在文件与发布内容不符时会直接拒绝执行:
+
+```html
+<script src="https://jsray.org/v/0.0.1-beta.3/jsray.js"
+        integrity="sha256-…"
+        crossorigin="anonymous"></script>
+```
+
+哈希就放在它所描述的文件旁边,格式与 SRI 完全一致:
+
+```
+https://jsray.org/v/0.0.1-beta.3/integrity.json
+```
+
+`crossorigin="anonymous"` 是必需的,不是可选:跨源脚本的 SRI 只有在加载走
+CORS 时才会被校验。该路径为此发送 `Access-Control-Allow-Origin: *`。
+
+这与每个 JSRay 集成用来校验其内置 Core 的是同一份清单 —— 自托管的副本、npm
+安装、`<script>` 引入,三条路都能用同样的方式验证。
+
 ---
 
 ## 项目边界

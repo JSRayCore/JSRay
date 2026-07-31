@@ -49,6 +49,32 @@ watching, pin the version instead** — every release is frozen at its own path:
 <script src="https://jsray.org/v/0.0.1-beta.3/jsray.js"></script>
 ```
 
+### Verifying what you loaded
+
+A pinned URL says which release you asked for, not which bytes you got. Add a
+[Subresource Integrity](https://developer.mozilla.org/docs/Web/Security/Subresource_Integrity)
+hash and the browser refuses to run the file if it is not the one published:
+
+```html
+<script src="https://jsray.org/v/0.0.1-beta.3/jsray.js"
+        integrity="sha256-…"
+        crossorigin="anonymous"></script>
+```
+
+The hashes live next to the files they describe, in the same format SRI uses:
+
+```
+https://jsray.org/v/0.0.1-beta.3/integrity.json
+```
+
+`crossorigin="anonymous"` is required, not optional — SRI on a cross-origin
+script is only checked when the load is a CORS request. That path sends
+`Access-Control-Allow-Origin: *` for exactly this reason.
+
+This is the same manifest every JSRay integration checks its bundled Core
+against, so a self-hosted copy, an npm install and a `<script>` tag can all be
+verified the same way.
+
 ---
 
 ## Features

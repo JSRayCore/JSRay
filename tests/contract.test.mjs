@@ -399,3 +399,67 @@ test('release: while no stable version exists, latest follows the newest prerele
   assert.match(script, /if \[ "\$NPM_TAG" = "beta" \]/,
     'the move must be scoped to prerelease publishes');
 });
+
+test('ship: the palette sources travel with the package', () => {
+  // The integrations vendor a Core snapshot, and two of them regenerate their
+  // own artifacts from the palette JSON — VS Code builds colour themes, the
+  // terminal builds ANSI maps. dist/themes/*.css is the generated CSS, not a
+  // source they can rebuild from. Publishing only the CSS meant a sync that
+  // read the package instead of a checkout would quietly ship one palette
+  // where there should be four, because the copy step skips a missing
+  // directory rather than failing on it.
+  const packed = new Set(
+    JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8' }))[0]
+      .files.map((f) => f.path)
+  );
+
+  const { readdirSync } = require('node:fs');
+  const sources = readdirSync(resolve(ROOT, 'themes')).filter((f) => f.endsWith('.json'));
+  assert.ok(sources.length >= 3, 'expected the additional palettes to exist');
+
+  for (const file of sources) {
+    assert.ok(packed.has(`themes/${file}`), `themes/${file} is not published`);
+  }
+  assert.ok(packed.has('tokens.json'), 'the default palette source is not published');
+});
+
+test('site: response headers are declared and cover the paths that need them', () => {
+  // jsray.org serves JavaScript into other people's pages, and the README now
+  // tells readers to pin a version with a Subresource Integrity hash. SRI on a
+  // cross-origin script is only enforced when the load is a CORS request, so
+  // without the CORS header those instructions do not merely fail to protect —
+  // the browser blocks the script and the page breaks.
+  const headers = read('_headers');
+
+  assert.match(headers, /^\/v\/\*$/m, 'no rule for the pinned-version paths');
+  const pinned = headers.slice(headers.indexOf('/v/*'), headers.indexOf('/dist/*'));
+  assert.match(pinned, /Access-Control-Allow-Origin: \*/, 'SRI on /v/ needs CORS');
+  assert.match(pinned, /Cache-Control:.*immutable/,
+    '/v/<version>/ never changes; it should not be revalidated on every load');
+
+  const global = headers.slice(headers.indexOf('/*'), headers.indexOf('/v/*'));
+  for (const h of ['Strict-Transport-Security', 'X-Content-Type-Options', 'Referrer-Policy']) {
+    assert.match(global, new RegExp(`${h}:`), `${h} is not set`);
+  }
+
+  // A file the deploy never copies configures nothing.
+  assert.match(read('tools/build-site.sh'), /cp _headers\s+_site\/_headers/,
+    'build-site.sh does not publish _headers');
+});
+
+test('site: the pinned paths carry the digests the README points at', () => {
+  // The README sends readers to /v/<version>/integrity.json for the hash to
+  // put in an integrity= attribute. That file has to be there, and its digests
+  // have to describe the files as served — the manifest keys are Core's dist/
+  // paths, while the site serves them one level up.
+  const build = read('tools/build-site.sh');
+  assert.match(build, /cp integrity\.json "_site\/v\/\$VERSION\/integrity\.json"/,
+    'the current release does not publish its digests');
+  assert.match(build, /package\/integrity\.json" "_site\/v\/\$v\/integrity\.json"/,
+    'older releases do not publish theirs');
+
+  assert.match(read('README.md'), /\/v\/[\d.a-z-]+\/integrity\.json/,
+    'the README does not say where the hashes are');
+  assert.match(read('README.md'), /crossorigin="anonymous"/,
+    'an SRI example without crossorigin= would leave the script blocked');
+});

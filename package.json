@@ -29,6 +29,7 @@
   "files": [
     "dist",
     "types",
+    "themes",
     "tokens.json",
     "assets/brand/*.svg",
     "assets/brand/README.md",

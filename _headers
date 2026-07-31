@@ -1,0 +1,33 @@
+# Response headers for jsray.org.
+#
+# Cloudflare Workers Assets reads this file from the root of the deployed
+# bundle; tools/build-site.sh copies it into _site/.
+
+/*
+  # The site is served over HTTPS only. Without this, a first visit typed
+  # without a scheme is a plaintext request that can be intercepted before the
+  # redirect lands. www.jsray.org serves HTTPS too, so the subdomain directive
+  # is safe.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  # jsray.org serves JavaScript and CSS to other people's pages. Content-type
+  # sniffing is how a file served as one thing gets executed as another.
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+
+# Pinned releases. /v/<version>/ never changes by design — that is the entire
+# reason it exists — but it was served with the same must-revalidate policy as
+# /dist/, so every page load asked the origin about a file that cannot differ.
+/v/*
+  Cache-Control: public, max-age=31536000, immutable
+  # Subresource Integrity on a cross-origin script requires crossorigin=
+  # "anonymous", which turns the load into a CORS request. Without this header
+  # the browser blocks the script outright — so a page following the SRI
+  # instructions in the README would break rather than be protected.
+  Access-Control-Allow-Origin: *
+
+# The current release. Moves on every publish, so it must stay revalidated;
+# only the CORS header is added, for pages that pin an integrity hash here
+# knowing they will have to update it each release.
+/dist/*
+  Access-Control-Allow-Origin: *
