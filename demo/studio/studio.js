@@ -5,13 +5,17 @@
    ========================================================= */
 
 // Token definitions: order, grouping, label, JSON key, CSS variable suffix.
-// Keep cssVar in lock-step with tools/generate-theme.mjs ALIAS.
+// `key` and `cssVar` mirror vocabulary.json, which is the single source for
+// this mapping across the whole project. A `$`-prefixed key is a surface —
+// it lives directly on the theme block rather than under `tokens`.
 const TOKEN_GROUPS = [
   {
     label: 'Surface',
     items: [
       { key: '$background', label: 'Background',           cssVar: 'bg' },
       { key: '$foreground', label: 'Foreground (default)', cssVar: 'fg' },
+      { key: '$border',     label: 'Border / scrollbar',   cssVar: 'border' },
+      { key: '$gutter',     label: 'Line-number gutter',   cssVar: 'gutter-fg' },
     ],
   },
   {
@@ -221,19 +225,19 @@ function buildRow(item) {
 // --- Sync UI ↔ state ↔ DOM ---------------------------------------------------
 function currentColorOf(item) {
   const theme = state.themes[state.mode];
-  if (item.key === '$background') return theme.background;
-  if (item.key === '$foreground') return theme.foreground;
+  // Surfaces sit on the theme block itself; tokens sit under `tokens`.
+  if (item.key.startsWith('$')) return theme[item.key.slice(1)] || '#000000';
   return theme.tokens[item.key]?.color || '#000000';
 }
 
 function setColorOf(item, value) {
   const theme = state.themes[state.mode];
-  if (item.key === '$background')      theme.background = value;
-  else if (item.key === '$foreground') theme.foreground = value;
-  else {
-    theme.tokens[item.key] = theme.tokens[item.key] || { color: value };
-    theme.tokens[item.key].color = value;
+  if (item.key.startsWith('$')) {
+    theme[item.key.slice(1)] = value;
+    return;
   }
+  theme.tokens[item.key] = theme.tokens[item.key] || { color: value };
+  theme.tokens[item.key].color = value;
 }
 
 function onColorChange(item, value, colorEl, hexEl) {
@@ -330,14 +334,28 @@ function generateThemeCss(name, themes) {
   return head + '\n' + blocks.join('\n\n') + '\n';
 }
 
+// Surfaces the exported stylesheet must carry, in order. lineHighlight has no
+// picker — it is an rgba overlay and <input type="color"> cannot express alpha
+// — but it still has to be written out: jsray.css uses it for the inline-code
+// background, so a theme that omits it renders inline code with no background
+// and, via --jr-border, an invisible scrollbar thumb.
+const SURFACE_VARS = [
+  ['background',    'bg'],
+  ['foreground',    'fg'],
+  ['border',        'border'],
+  ['gutter',        'gutter-fg'],
+  ['lineHighlight', 'line-hl'],
+];
+
 function block(selector, theme) {
-  const lines = [
-    `  --jr-bg:        ${theme.background};`,
-    `  --jr-fg:        ${theme.foreground};`,
-    '',
-  ];
+  const lines = [];
+  for (const [key, cssVar] of SURFACE_VARS) {
+    if (theme[key]) lines.push(`  --jr-${(cssVar + ':').padEnd(14)} ${theme[key]};`);
+  }
+  lines.push('');
+
   for (const item of ALL_ITEMS) {
-    if (item.key === '$background' || item.key === '$foreground') continue;
+    if (item.key.startsWith('$')) continue;
     const tok = theme.tokens[item.key];
     if (!tok) continue;
     lines.push(`  --jr-${(item.cssVar + ':').padEnd(14)} ${tok.color};`);
