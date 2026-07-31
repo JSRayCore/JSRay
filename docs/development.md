@@ -261,6 +261,37 @@ each platform's auto-update channel.
    major version (plugin 2.x bundles Core 2.x); minor/patch numbers stay
    independent per repository.
 
+**Security releases do not batch.** The selective train above covers features
+and ordinary fixes; an integration may skip one. A Core release that fixes a
+vulnerability is a synchronized train regardless of version number: every
+integration syncs and releases, immediately. Merging a sync PR is not the end —
+a user receives the fix only after the integration is released and the
+platform's review queue clears, which is days, not hours.
+
+**Keeping the snapshots honest** — integrations vendor Core rather than
+depending on it, so a published fix reaches nobody until each repository
+re-syncs. Two mechanisms make that automatic rather than remembered, and both
+live in the integration repositories:
+
+- `tools/check-core-freshness.mjs` runs in CI and **fails** when the bundled
+  `bundledCore.version` is behind the `beta` dist-tag on npm. It queries the
+  registry, so unlike the sibling-checkout drift check it works in CI, where no
+  Core checkout exists. An unreachable registry skips rather than fails —
+  not knowing is not the same as being stale.
+- `.github/workflows/sync-core.yml` polls every six hours and opens a pull
+  request when a newer Core is published: it syncs from the tarball, runs the
+  suite, and stops. It polls rather than reacting to a Core release trigger,
+  which would need a long-lived token in Core able to write to all three
+  integrations — a credential this project should not be creating to save a
+  few hours.
+
+`tools/sync-core.sh` accepts either source: `JSRAY_CORE_DIR` for a sibling
+checkout (what a maintainer has, and what lets `sync-integrations.sh` exercise
+an unreleased Core) or `JSRAY_CORE_VERSION` to unpack the published tarball
+(what CI uses). Core's `files` array therefore has to publish everything a sync
+copies — including `themes/*.json`, the palette sources the VS Code and
+terminal builds regenerate from.
+
 **Zero dependencies** — no runtime npm dependencies anywhere. Tests use
 `node --test`; scripts are plain sh/node.
 

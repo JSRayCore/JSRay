@@ -158,6 +158,29 @@ renderer.languages                 -> { [language]: grammar }
 2. *Core 大版本*走**同步列车**:全部集成随之发布对应大版本。token 类体系、公开 API、渲染器契约的破坏性变更**只允许**发生在 Core 大版本——小版本必须保持纯增量。
 3. 约定:集成的大版本号 = 其内置 Core 的大版本号(插件 2.x 必然内置 Core 2.x);小版本与补丁号各仓库独立。
 
+**安全修复不攒批次。** 上面的选择性列车适用于功能和普通修复,集成可以跳过某一班。
+但修复漏洞的 Core 版本无论版本号大小,一律走同步列车:所有集成立即同步并发版。
+合并同步 PR 不是终点 —— 用户拿到修复还要等集成发版、再等平台审核队列,这是以天计的。
+
+**让快照保持诚实** —— 集成是把 Core 拷贝进来而非依赖它,所以已发布的修复在各仓库
+重新同步之前谁也拿不到。有两个机制让这件事自动发生,而不是靠人记得,它们都在集成
+仓库里:
+
+- `tools/check-core-freshness.mjs` 在 CI 里运行,当 `bundledCore.version` 落后于
+  npm 上的 `beta` 标签时**直接失败**。它查的是 registry,所以不像那个基于兄弟目录
+  的漂移校验 —— 后者在 CI 里(没有 Core 检出)会静默跳过。registry 不可达时跳过而
+  非失败:不知道和落后不是一回事。
+- `.github/workflows/sync-core.yml` 每六小时轮询一次,发现更新的 Core 就开一个 PR:
+  从 tarball 同步、跑测试,然后停下。用轮询而不是由 Core 发布触发,是因为触发需要在
+  Core 里存一个能写三个集成仓库的长期令牌 —— 为了省下几个小时,这个项目不该创建
+  这样一份凭据。
+
+`tools/sync-core.sh` 两种来源都接受:`JSRAY_CORE_DIR` 指向兄弟检出(维护者本地
+就是这样,也是 `sync-integrations.sh` 能验证未发布 Core 的原因),或
+`JSRAY_CORE_VERSION` 解包已发布的 tarball(CI 用这条)。因此 Core 的 `files` 必须
+发布同步会拷贝的一切 —— 包括 `themes/*.json`,VS Code 和终端的构建要从这些调色板
+源重新生成产物。
+
 **零依赖** —— 任何仓库都没有运行时 npm 依赖。测试用 `node --test`;脚本是纯 sh/node。
 
 **命名** —— 仓库名为 `jsray-<platform>`(依 WordPress 基金会商标指引,WordPress 缩写为 `jsray-wp`)。面向用户的插件名/slug 保持 `JSRay` / `jsray`。
