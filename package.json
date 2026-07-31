@@ -1,6 +1,6 @@
 {
   "name": "@jsray/core",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "description": "JavaScript-native code rendering kernel with 23-class token semantics and pluggable themes.",
   "author": "Jie <jie@jsray.org>",
   "license": "MIT",
@@ -15,6 +15,17 @@
   "main": "dist/jsray.js",
   "style": "dist/jsray.css",
   "types": "types/jsray.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/jsray.d.ts",
+      "default": "./dist/jsray.js"
+    },
+    "./dist/*": "./dist/*",
+    "./tokens.json": "./tokens.json",
+    "./vocabulary.json": "./vocabulary.json",
+    "./integrity.json": "./integrity.json",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "types",
@@ -52,6 +63,6 @@
     "themes"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

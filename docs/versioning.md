@@ -1,8 +1,10 @@
 # JSRay Versioning
 
+**English** · [简体中文](versioning.zh-CN.md)
+
 JSRay Core uses single-project versioning. Platform plugins keep their own version files in their own repositories.
 
-Current version: `0.0.1-beta.2`
+Current version: `0.0.1-beta.3`
 Current channel: `beta`
 Public beta released: yes
 
@@ -55,6 +57,10 @@ pointing at the newest stable release. `package.json` drops
 `"private": true` at the beta promotion — `check:versions` only enforces
 that flag on the internal channel.
 
-Published contents are governed by the `files` array: `dist/`,
-`types/`, `tokens.json`, `assets/brand`, README, LICENSE, CHANGELOG.
-Verify with `npm pack --dry-run` before every publish.
+Published contents are governed by the `files` array: `dist/`, `types/`,
+`tokens.json`, `vocabulary.json`, `integrity.json`, `assets/brand`, README,
+LICENSE, CHANGELOG. The last two of those are not optional — integrations
+validate custom palettes against `vocabulary.json` and verify their bundled
+Core snapshot against `integrity.json`, so a publish that dropped either would
+break them without breaking anything here. `tests/contract.test.mjs` asserts
+the package still contains them; `npm pack --dry-run` shows the full list.

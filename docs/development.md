@@ -47,8 +47,15 @@ code string ──tokenize(code, rules)──▶ token stream ──renderer─�
    strings and `{ type: 'tk-*', content: string | stream }` nodes. Every
    surface consumes this same shape: `render()` emits HTML spans,
    `jsray-terminal` emits ANSI sequences.
-3. **Grammar registry `G`** — one rule array per language family; aliases are
-   plain references (`G.ts = G.javascript`). The C family (C, C++, Java, C#,
+3. **Grammar registry `G`** — one rule array per language family. Aliases are
+   declared once in `LANGUAGE_ALIASES` and registered on `G` by the loop that
+   follows it, so `G.rb` and `G.ruby` are the same array without anyone
+   writing the second one down. Add an alias there and nowhere else; a
+   hand-written `G.x = G.y` beside the table is a duplicate, and a test
+   rejects it. Names that share a grammar without being aliases of it
+   (`typescript`, `xml`, `scss`) stay explicit — they normalize to
+   themselves, which is what keeps a TypeScript block labelled `typescript`.
+   The C family (C, C++, Java, C#,
    Go, Rust, Swift, Kotlin, Dart, Scala, Objective-C) shares the
    `cLikeGrammar(keywords, builtins, options)` factory
    (options: `rustMacros`, `fnDeclKeywords`).

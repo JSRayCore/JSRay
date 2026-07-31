@@ -110,12 +110,25 @@ Markdown-specific:
 
 ---
 
+## Structural classes
+
+Not every class the grammars emit carries a color.
+
+| Class | Purpose |
+|---|---|
+| `tk-scope` | Wraps a parameter list so the names inside can be colored as parameters. Deliberately unstyled — it exists to give the nested rules something to attach to, and coloring the wrapper would tint the punctuation around them. |
+
+A renderer that walks the token stream itself should pass `tk-scope` through and
+style its children, not the node.
+
+---
+
 ## CSS variables quick reference
 
 Every token color is driven by a CSS variable, so they're easy to override:
 
 ```css
-:root {
+[data-theme="dark"] {
   --jr-keyword:     #D08BFC;
   --jr-fn-decl:     #5DD8B0;
   --jr-var-param:   #F2B870;
@@ -123,12 +136,22 @@ Every token color is driven by a CSS variable, so they're easy to override:
 }
 ```
 
-Full list: top of [src/jsray.css](../src/jsray.css).
+`jsray.css` only *consumes* these variables — it binds `.tk-keyword` to
+`var(--jr-keyword)` and nothing more. The values live in the theme stylesheets,
+one file per palette: [src/themes/default.css](../src/themes/default.css).
+That split is what lets you swap a palette by changing one `<link>`.
 
 ---
 
 ## Want to customize?
 
-1. Copy the two `:root` / `[data-theme="light"]` blocks at the top of `src/jsray.css`
-2. Change any `--jr-*` variable
-3. Load your override stylesheet — no need to fork the JS engine
+1. Copy `dist/themes/default.css` — it holds both the `[data-theme="dark"]` and
+   `[data-theme="light"]` blocks, 23 token variables plus 5 surface variables each
+2. Change any `--jr-*` value
+3. Load your copy in place of the stock theme, keeping `jsray.css` as it is —
+   no need to fork the JS engine
+
+To go the other way and generate a theme instead of editing CSS, write a
+palette JSON in the shape of [tokens.json](../tokens.json) and run
+`node tools/generate-theme.mjs`. That is also the shape `JSRay.applyTheme()`
+takes, so the same file can drive a runtime switch.

@@ -8,29 +8,165 @@ on:
 permissions:
   contents: read
 
+# A branch only needs its newest commit checked. Superseded runs are cancelled
+# rather than left to finish against code nobody will merge.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test on Node ${{ matrix.node }}
     runs-on: ubuntu-latest
+    # The suite finishes in seconds. A run that reaches this limit has hung,
+    # and a hang is a failure mode this project has actually shipped: before
+    # 0.0.1-beta.3 an unterminated string could hold a regex engine for
+    # minutes. Without a limit that becomes a six-hour runner, and the signal
+    # ("something loops forever") arrives as a billing surprise instead of a
+    # red check.
+    timeout-minutes: 10
     strategy:
+      # One Node version failing should not hide whether the others pass —
+      # "fails on 24 only" and "fails everywhere" call for different fixes.
+      fail-fast: false
       matrix:
-        node: ['18', '20', '22']
+        # Must stay in step with package.json engines.node — a version the
+        # badge claims but CI never runs is a guess, not a promise. 18 left
+        # when it went end-of-life; nothing in Core needed it to go.
+        node: ['20', '22', '24']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+
+      # Zero runtime dependencies, and no lockfile to install from. Anything
+      # that needed `npm ci` here would be a dependency that should not exist.
+      - name: Confirm the dependency-free claim still holds
+        run: |
+          node -e '
+            const pkg = require("./package.json");
+            for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) {
+              const n = Object.keys(pkg[field] || {}).length;
+              if (n) { console.error(`::error::package.json declares ${n} ${field}`); process.exit(1); }
+            }
+            console.log("no runtime dependencies");
+          '
+
+      # Shell and JSON are the parts of the repo no test imports. A typo in
+      # build.sh or a trailing comma in a palette surfaces at release time
+      # otherwise — which is the one moment nobody wants to be debugging.
+      - name: Check shell scripts and JSON parse
+        run: |
+          for f in build.sh tools/*.sh; do
+            sh -n "$f" || { echo "::error file=$f::shell syntax error"; exit 1; }
+          done
+          # `find` rather than a glob: `**` is not recursive in POSIX sh or in
+          # bash without globstar, so a pattern like .github/**/*.json silently
+          # matches nothing and the check quietly passes.
+          find . -name '*.json' -not -path './node_modules/*' -not -path './.git/*' -print0 \
+            | xargs -0 -I{} node -e 'JSON.parse(require("fs").readFileSync("{}","utf8"))'
+          echo "shell + json ok"
+
+      # build.sh rewrites both dist/ and integrity.json, so the diff has to
+      # cover both. integrity.json is what every integration checks its
+      # bundled Core snapshot against — a stale one committed here would let
+      # a genuine build be reported as tampered, or the reverse.
       - name: Verify build is in sync
         run: |
           sh build.sh
-          if ! git diff --quiet -- dist/; then
-            echo "::error::dist/ is out of sync with src/. Run 'sh build.sh' and commit."
-            git diff -- dist/
+          if ! git diff --quiet -- dist/ integrity.json; then
+            echo "::error::dist/ or integrity.json is out of sync with src/. Run 'sh build.sh' and commit."
+            git diff -- dist/ integrity.json
             exit 1
           fi
+
+      - name: Verify integrity manifest matches dist
+        run: npm run check:integrity
+
       - name: Validate version metadata
         run: npm run check:versions
+
       - name: Run tests
         run: npm test
-      - name: Validate npm package
-        run: npm pack --dry-run
+
+  # A tarball that passes every test in the repo can still be unusable once
+  # installed: `files`, `exports`, and `main` decide what a consumer can reach,
+  # and none of them are exercised by running tests from the source tree.
+  package:
+    name: Install from the tarball and use it
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pack
+        run: npm pack --pack-destination /tmp
+
+      - name: Install into an empty project and exercise the public entry points
+        run: |
+          mkdir -p /tmp/consumer && cd /tmp/consumer
+          npm init -y >/dev/null
+          npm install /tmp/jsray-core-*.tgz >/dev/null
+
+          node -e '
+            const assert = require("node:assert/strict");
+            const JSRay = require("@jsray/core");
+
+            assert.match(JSRay.highlight("const x = 42;", "js"), /tk-keyword/,
+              "highlight produced no tokens from the installed package");
+
+            // Each of these is referenced by the README, the types, or an
+            // integration. A missing one is a broken install, not a warning.
+            for (const p of [
+              "@jsray/core/dist/jsray.css",
+              "@jsray/core/dist/themes/default.css",
+              "@jsray/core/tokens.json",
+              "@jsray/core/vocabulary.json",
+              "@jsray/core/integrity.json",
+            ]) require.resolve(p);
+
+            const vocab = require("@jsray/core/vocabulary.json");
+            assert.equal(vocab.version, JSRay.version, "shipped vocabulary.json is a different version");
+
+            console.log(`installed @jsray/core ${JSRay.version}, ${Object.keys(JSRay.languages).length} language keys`);
+          '
+
+      - name: Verify the shipped integrity manifest against the shipped dist
+        run: |
+          cd /tmp/consumer/node_modules/@jsray/core
+          node -e '
+            const { createHash } = require("node:crypto");
+            const { readFileSync } = require("node:fs");
+            const manifest = require("./integrity.json");
+            let checked = 0;
+            for (const [file, expected] of Object.entries(manifest.files)) {
+              const actual = "sha256-" + createHash("sha256").update(readFileSync(file)).digest("base64");
+              if (actual !== expected) {
+                console.error(`::error::${file} does not match its published digest`);
+                process.exit(1);
+              }
+              checked++;
+            }
+            console.log(`integrity verified from the installed package: ${checked} files`);
+          '
+
+      - name: Confirm the browser entry point defines the global
+        # dist/jsray.js is loaded as a plain <script> far more often than it is
+        # required. The UMD tail and the DOMContentLoaded auto-init only run on
+        # that path, so requiring the module never reaches them.
+        run: |
+          cd /tmp/consumer
+          node -e '
+            const vm = require("node:vm");
+            const src = require("fs").readFileSync("node_modules/@jsray/core/dist/jsray.js", "utf8");
+            const sandbox = { window: {}, document: undefined };
+            sandbox.globalThis = sandbox;
+            vm.createContext(sandbox);
+            vm.runInContext(src, sandbox);
+            if (!sandbox.window.JSRay) { console.error("::error::script tag load did not define window.JSRay"); process.exit(1); }
+            console.log("window.JSRay defined:", sandbox.window.JSRay.version);
+          '

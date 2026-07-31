@@ -9,7 +9,7 @@
 
 [![npm](https://img.shields.io/npm/v/@jsray/core/beta?label=npm)](https://www.npmjs.com/package/@jsray/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1--beta.2-lightgrey)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.0.1--beta.3-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
@@ -45,7 +45,7 @@ JSRay.highlight('const x = 42;', 'js');
 `jsray.org/dist/` 始终提供当前发布版本。**线上站点如果你不会持续盯着,请改用锁定版本的地址** —— 每个发布版本都固化在自己的路径下,永不变动:
 
 ```html
-<script src="https://jsray.org/v/0.0.1-beta.2/jsray.js"></script>
+<script src="https://jsray.org/v/0.0.1-beta.3/jsray.js"></script>
 ```
 
 ---
@@ -77,7 +77,7 @@ JSRay 的目标是成为完整开源的代码渲染生态：一个轻量 Core �
 
 ## 特性
 
-JSRay 把 6 个标识符族**视觉分离**，让你用余光就能区分参数、常量、内置变量、函数声明与调用：
+JSRay 把 9 个标识符族**视觉分离**，让你用余光就能区分参数、常量、内置变量、函数声明与调用：
 
 | 类别 | Dark | Light | 直觉 |
 |---|---|---|---|
@@ -142,7 +142,31 @@ JSRay.highlightAll();
 
 // 没有 class 时猜测语言
 const lang = JSRay.detectLanguage('SELECT * FROM posts;');
+
+// 把别名解析为语法表实际使用的名字
+JSRay.normalizeLanguage('c++');   // → 'cpp'
+
+// 运行时切换调色板，不必再加载一份样式表
+JSRay.applyTheme(palette.themes.dark);
 ```
+
+#### 渲染成 HTML 以外的形式
+
+`highlight()` 就是 `tokenize()` 加 `render()`。把两步拆开，中间那步就归你 ——
+token 流只携带语义，对输出格式不作任何假设。终端渲染器正是这样输出 ANSI
+而不是 `<span>` 的：
+
+```js
+const stream = JSRay.tokenize('const x = 42;', 'js');
+// [ { type: 'tk-keyword', content: 'const' }, ' ', … ]
+
+JSRay.render(stream);            // 内置的 HTML 渲染器
+stream.map(toAnsi).join('');     // 或者自己遍历
+```
+
+流中每一项要么是纯字符串（没有 token），要么是 `{ type, content }`，其中
+`content` 是字符串或嵌套的流。`type` 取自 [docs/tokens.md](docs/tokens.md)
+里的 token class。
 
 ---
 
@@ -154,14 +178,14 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 | Python | `language-python` `language-py` |
 | PHP | `language-php` |
 | Go | `language-go` |
-| Swift / Kotlin / Dart / Lua | `language-swift` `language-kotlin` `language-kt` `language-dart` `language-lua` |
+| Swift / Kotlin / Dart / Lua | `language-swift` `language-kotlin` `language-kt` `language-kts` `language-dart` `language-lua` |
 | Java | `language-java` |
 | C / C++ / C# | `language-c` `language-cpp` `language-csharp` `language-cs` |
 | Ruby | `language-ruby` `language-rb` |
 | Rust | `language-rust` `language-rs` |
 | HTML / XML / SVG / Vue | `language-html` `language-xml` `language-svg` `language-vue` |
-| CSS / SCSS / SASS / LESS | `language-css` `language-scss` |
-| JSON / JSONC | `language-json` |
+| CSS / SCSS / SASS / LESS | `language-css` `language-scss` `language-sass` `language-less` |
+| JSON / JSONC | `language-json` `language-jsonc` |
 | Shell / Bash / Zsh | `language-bash` `language-shell` |
 | Markdown | `language-md` `language-markdown` |
 | SQL | `language-sql` |
@@ -174,7 +198,7 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 | Elixir | `language-elixir` `language-ex` `language-exs` |
 | Haskell | `language-haskell` `language-hs` |
 | GraphQL | `language-graphql` `language-gql` |
-| TOML / INI | `language-toml` `language-ini` `language-properties` |
+| TOML / INI | `language-toml` `language-ini` `language-properties` `language-cfg` `language-conf` |
 | Dockerfile | `language-dockerfile` `language-docker` |
 | Makefile | `language-makefile` `language-make` |
 | Diff / Patch | `language-diff` `language-patch` |
@@ -191,10 +215,12 @@ const lang = JSRay.detectLanguage('SELECT * FROM posts;');
 jsray/
 ├── src/                ← 开发源
 │   ├── jsray.js
-│   └── jsray.css
+│   ├── jsray.css
+│   └── themes/         ← 生成的调色板样式表
 ├── dist/               ← 发布产物 (零构建,目前 = src 副本)
 │   ├── jsray.js
-│   └── jsray.css
+│   ├── jsray.css
+│   └── themes/         ← default.css、aurora.css、ember.css、fjord.css
 ├── themes/             ← 附加调色板源(aurora、ember、fjord)
 ├── demo/
 │   ├── index.html      ← 示例语言可视化演示
@@ -202,7 +228,9 @@ jsray/
 ├── docs/
 │   ├── development.md  ← 全生态开发指南
 │   ├── tokens.md       ← 23 token 语义详解
-│   └── languages.md    ← 各语言规则范例
+│   ├── languages.md    ← 各语言规则范例
+│   ├── projects.md     ← 项目拆分与发布边界
+│   └── versioning.md   ← 版本通道及其承诺
 ├── tools/              ← 主题生成器 · 版本校验 · 集成同步
 ├── tests/              ← node --test 测试
 ├── tokens.json         ← 调色板机器可读格式(default 主题)

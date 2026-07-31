@@ -36,7 +36,7 @@ JSRay 生态的工程参考:全部官方仓库的架构、契约、约定与工�
 
 1. **分词器** —— `tokenize()` 按顺序应用语法规则(先匹配者胜)。规则支持 `inside`(对捕获文本递归套用子语法——参数列表、模板字符串插值)与 `lookbehind`(捕获组 1 作为前缀被消费但不着色,且后续规则仍可匹配它)。
 2. **Token 流** —— 渲染器无关的契约:由普通字符串和 `{ type: 'tk-*', content: 字符串或子流 }` 节点组成的数组。所有平台消费同一形状:`render()` 输出 HTML span,`jsray-terminal` 输出 ANSI 序列。
-3. **语法注册表 `G`** —— 每个语言族一个规则数组;别名是普通引用(`G.ts = G.javascript`)。C 家族(C、C++、Java、C#、Go、Rust、Swift、Kotlin、Dart、Scala、Objective-C)共用 `cLikeGrammar(keywords, builtins, options)` 工厂(选项:`rustMacros`、`fnDeclKeywords`)。
+3. **语法注册表 `G`** —— 每个语言族一个规则数组。别名只在 `LANGUAGE_ALIASES` 里声明一次,由紧随其后的循环注册到 `G` 上,因此 `G.rb` 和 `G.ruby` 是同一个数组,而无需有人手写第二行。**加别名只改那一处**;表旁边再手写 `G.x = G.y` 就是重复,有测试会拒绝。共用语法但并非别名的名字(`typescript`、`xml`、`scss`)保持显式赋值 —— 它们归一化到自身,这才使 TypeScript 代码块仍被标为 `typescript`。C 家族(C、C++、Java、C#、Go、Rust、Swift、Kotlin、Dart、Scala、Objective-C)共用 `cLikeGrammar(keywords, builtins, options)` 工厂(选项:`rustMacros`、`fnDeclKeywords`)。
 4. **语言检测** —— `detectLanguage()` 三步走:JSON 解析快速通道 → shebang 快速通道(`#!` 解释器映射)→ 各语言特征打分并过置信阈值。diff 检测器排在首位,防止补丁内容被识别成其内嵌语言。
 5. **主题运行时** —— `applyTheme(themeBlock, root)` 写入 `--jr-*` CSS 变量。默认目标是携带 `data-theme` 的元素(通常是 `<body>`):主题样式表通过 `[data-theme]` 选择器把同名变量定义在那里,写到祖先节点的内联变量会被遮蔽。
 6. **公开 API** —— `highlight`、`highlightElement`、`highlightAll`、`tokenize`、`render`、`applyTheme`、`detectLanguage`、`normalizeLanguage`、`languages`。UMD 式导出:CommonJS `module.exports` + `global.JSRay`。
@@ -101,7 +101,7 @@ string.escape (未来) → string → (中性前景色)
 
 ## 4. 语言
 
-35 个语言族、79 个语言键(含别名)。新增一门语言:
+35 个语言族、83 个语言键(含别名)。新增一门语言:
 
 1. 在 `src/jsray.js` 写语法(独立 `G.<lang>` 数组,或 C 系语法用 `cLikeGrammar` 工厂)。
 2. 别名:`G.<alias> = G.<lang>` **加** `LANGUAGE_ALIASES` 条目。

@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const JSRay = require('../dist/jsray.js');
@@ -465,4 +466,72 @@ test('applyTheme: refined keys fall back to their base family', () => {
   assert.equal(fakeRoot.style._bag['--jr-fn-decl'],    '#123456', 'function.declaration falls back');
   assert.equal(fakeRoot.style._bag['--jr-fn-builtin'], '#123456', 'function.builtin falls back');
   assert.equal(fakeRoot.style._bag['--jr-keyword'], undefined, 'unrelated families stay unset');
+});
+
+// ---------------------------------------------------------------------------
+// Pathological input · catastrophic backtracking
+//
+// An unterminated interpolating string is ordinary content — a tutorial
+// showing half a line, a snippet cut off mid-edit. Before 0.0.1-beta.3 four
+// grammars answered it with exponential backtracking: 26 `$a` in an unclosed
+// shell string took 115 seconds, which in a browser is a frozen tab. These
+// budgets are deliberately loose; the failure mode they guard is seconds to
+// minutes, not milliseconds.
+// ---------------------------------------------------------------------------
+const BUDGET_MS = 500;
+
+for (const [lang, label, unit, open] of [
+  ['javascript', 'template string', '${a}', '`'],
+  ['ruby',       'interpolation',   '#{a}', '"'],
+  ['elixir',     'interpolation',   '#{a}', '"'],
+  ['shell',      'variable',        '$a',   '"'],
+]) {
+  test(`${lang}: unterminated ${label} stays linear`, () => {
+    // 2000 repeats: at the old growth rate (~4x per 2 repeats) even 40 would
+    // outlive the process, so this passes only if the ambiguity is truly gone.
+    const code = open + unit.repeat(2000);
+    const started = Date.now();
+    JSRay.highlight(code, lang);
+    const elapsed = Date.now() - started;
+    assert.ok(elapsed < BUDGET_MS,
+      `${lang} took ${elapsed}ms on ${code.length} chars — backtracking regression`);
+  });
+}
+
+test('interpolation still tokenizes after the backtracking fix', () => {
+  assert.match(JSRay.highlight('`a${b}c`', 'js'), /class="tk-punct">\$\{</);
+  assert.match(JSRay.highlight('"hi #{name}"', 'ruby'), /class="tk-operator">#\{name\}</);
+  assert.match(JSRay.highlight('"v=#{x}"', 'elixir'), /class="tk-operator">#\{x\}</);
+  assert.match(JSRay.highlight('"$HOME/${dir}"', 'shell'), /class="tk-var-builtin">\$HOME</);
+  assert.match(JSRay.highlight('"$HOME/${dir}"', 'shell'), /class="tk-var-builtin">\$\{dir\}</);
+});
+
+test('a lone $ or # inside a string is not an interpolation', () => {
+  // The fix admits these through a separate branch; make sure it kept them.
+  assert.match(JSRay.highlight('`cost: $5`', 'js'), /tk-string">`cost: \$5`</);
+  assert.match(JSRay.highlight('"a # b"', 'ruby'), /tk-string">&quot;a # b&quot;</);
+});
+
+test('CSS: custom properties color whole, in declaration and in var()', () => {
+  const decl = JSRay.highlight('--jr-keyword: #ff7b72;', 'css');
+  assert.match(decl, /class="tk-css-prop">--jr-keyword</,
+    'the leading -- must be inside the token, not stranded before it');
+
+  const ref = JSRay.highlight('color: var(--brand);', 'css');
+  assert.match(ref, /class="tk-css-prop">--brand</);
+
+  // JSRay's own theme stylesheets are nothing but custom properties, so they
+  // are the honest regression fixture: no `--` may survive outside a token.
+  const theme = readFileSync(new URL('../dist/themes/default.css', import.meta.url), 'utf8');
+  const rendered = JSRay.highlight(theme, 'css');
+  const outside = rendered.replace(/<span class="tk-css-prop">[^<]*<\/span>/g, '');
+  assert.equal((outside.match(/--/g) || []).length, 0,
+    'every -- in the default theme should sit inside a tk-css-prop token');
+});
+
+test('YAML: a # inside a block scalar is content, not a comment', () => {
+  const out = JSRay.highlight('key: |\n  raw # not a comment\nother: 1 # real', 'yaml');
+  assert.doesNotMatch(out, /class="tk-comment"># not a comment/);
+  assert.match(out, /class="tk-comment"># real/, 'comments outside the block still work');
+  assert.match(out, /class="tk-type">key</, 'the key itself still tokenizes');
 });

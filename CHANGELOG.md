@@ -5,6 +5,29 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [0.0.1-beta.3] — 2026-07-31
+
+### Fixed
+- **Catastrophic backtracking on unterminated interpolating strings.** JavaScript template literals, Ruby and Elixir `#{}` strings, and shell `"$var"` strings each let an interpolation be matched two ways — as one placeholder or character by character — so an unclosed string made the regex engine try every combination. Twenty-six `$a` in an unclosed shell string took 115 seconds; a few thousand characters would never finish. In a browser that is a frozen tab, reachable from ordinary content: a snippet cut off mid-line, a tutorial showing half a function. Each fallback character class now excludes the character its interpolation branch starts with, which is what PHP and PowerShell already did. The same input is now handled in single-digit milliseconds at any length.
+- **CSS custom properties were split in two.** `--jr-keyword: #ff7b72` rendered as an uncolored `--` followed by a `jr-keyword` token, and `var(--brand)` was left entirely uncolored, because a word boundary cannot match before a leading `-`. Custom properties are now matched whole in both roles. JSRay's own theme stylesheets are made of nothing else — all 56 declarations in `default.css` were affected.
+- **YAML block scalars treated `#` as a comment.** Everything indented under `key: |` or `key: >` is literal text; a `#` in there is content.
+- **The default palette was missing three surfaces.** `tokens.json` declared `background` and `foreground` but not `border`, `gutter`, or `lineHighlight`; the other three themes declared all five. The generated CSS looked complete because `generate-theme.mjs` substitutes a default for anything a palette omits — but `applyTheme()` and the integrations read the palette, not the CSS. Switching to the default palette at runtime therefore left the previous theme's border and gutter in place. The values are now in the palette itself, identical to what the generator was substituting, so the stylesheets are byte-for-byte unchanged.
+
+### Changed
+- `JSRay.languages` gained the four punctuation aliases (`c++`, `c#`, `objective-c`, `obj-c`), which were reachable through `normalizeLanguage()` but absent as lookup keys — 79 keys to 83, over the same 35 grammars. No existing key changed what it normalizes to.
+- Language aliases are declared once. Thirty-five `G.rb = G.ruby` assignments duplicated `LANGUAGE_ALIASES` and had already drifted from it — `ts` pointed at `javascript` in one place and `typescript` in the other. The table is now the only declaration and the lookup keys are derived from it.
+- Node 18 left the CI matrix (end-of-life) and `engines.node` moved to `>=20`. Nothing in Core required the change; a supported version the tests never run is a guess.
+
+### Added
+- `tests/contract.test.mjs`: invariants that hold across every language rather than one at a time — highlighting never alters the source text, `tokenize()` never loses text, output can never break out of `innerHTML`, no input shape takes superlinear time in any grammar, and the published package contains what the docs, types, and integrations depend on. 108 tests total, up from 67.
+- Drift guards for the two single-source tables. `vocabulary.json` is inlined in the runtime as `THEME_ALIAS` because Core loads as a plain `<script>` and cannot read JSON; a test now asserts the copy matches entry for entry, and that `applyTheme()` uses all of it. `tests/palettes.test.mjs` also stopped restating the token list and reads it from `vocabulary.json` — a hand-copied list in a contract test silently stops checking tokens added after it was written.
+- CI verifies `integrity.json` and includes it in the build-sync diff. This manifest is how every integration decides whether the Core snapshot it bundles is the official build, and nothing in CI had been checking it.
+
+### Documentation
+- `types/jsray.d.ts` said `require('jsray')` — the package is `@jsray/core` — carried a version example from the retired internal channel, and described `applyTheme()`'s default root as `document.documentElement` when the implementation prefers the element carrying `data-theme`. A test now ties the example version to the real one.
+- The README documented four of the eight public API methods. `tokenize()` and `render()`, the entry points for rendering to anything other than HTML, are now shown with the stream shape they exchange; `applyTheme()` and `normalizeLanguage()` are listed. A test keeps the list complete.
+- Corrected the identifier-family count (the feature table lists nine, the text said six), the language table's missing identifiers (`jsonc`, `sass`, `less`, `kts`, `cfg`, `conf`), and the repository tree, which omitted `dist/themes/` — the directory every Quick Start snippet links — along with two of the five files in `docs/`.
+
 ## [0.0.1-beta.2] — 2026-07-26
 
 ### Fixed
