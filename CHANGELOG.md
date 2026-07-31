@@ -5,6 +5,25 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [0.0.1-beta.4] — 2026-08-01
+
+No engine changes. `dist/jsray.js` is byte-for-byte the 0.0.1-beta.3 build — this release is about what surrounds it: what the package publishes, what the site sends, and how a copied snapshot stays current.
+
+### Added
+- **Subresource Integrity for anyone loading Core from jsray.org.** The integrations verify their bundled snapshot against `integrity.json`; a page loading the same file over a `<script>` tag verified nothing. The digests were already `sha256-<base64>`, the exact format SRI takes, so this needed publishing rather than inventing. Two things had to be true for the instructions to work rather than break pages: `/v/<version>/integrity.json` had to exist — it was a 404, because the build copied `dist/` and left the manifest behind — and the pinned paths had to send `Access-Control-Allow-Origin`, because SRI on a cross-origin script is only enforced when `crossorigin="anonymous"` makes the load a CORS request, and the browser blocks the script outright otherwise. Verified end to end from a separate origin: a correct hash loads, a wrong one is refused.
+- **Security response headers.** jsray.org serves JavaScript into other people's pages and sent none: no HSTS, so a first visit typed without a scheme was a plaintext request; no `nosniff`, on an origin whose job is serving `.js` and `.css` to third parties. Also `Referrer-Policy` and `X-Frame-Options`.
+- **The palette sources ship.** `themes/*.json` is in `files` and in `exports`. The VS Code themes and terminal ANSI maps are regenerated from those sources, not from the CSS, and an integration syncing from the published package would otherwise have quietly ended up with one palette where there should be four — the copy step skipped a missing directory rather than failing on it.
+- A footer on both site pages: install, documentation, ecosystem, project. The integrations are named but not linked, because their repositories do not exist yet.
+
+### Fixed
+- **`/v/<version>/` is immutable.** Those paths never change by design — that is the entire reason they exist — and were served with the same `must-revalidate` policy as `/dist/`, so every page load asked the origin about a file that cannot differ.
+- **One fewer redirect.** The deployed pages link `/studio` rather than `/studio.html`, which Cloudflare was answering with a 307 on every visit. Rewritten at build time, so opening `demo/index.html` from a checkout still works.
+- **The theme studio wrote incomplete themes.** Its surface list had two of five entries, so a downloaded theme carried no `--jr-border`, `--jr-gutter-fg` or `--jr-line-hl` — leaving inline code with no background and the scrollbar thumb invisible, on a file the studio itself tells you to drop next to `jsray.css`.
+
+### Changed
+- **Integrations stop relying on someone remembering to sync.** They vendor a Core snapshot because a WordPress plugin is a zip on a host with no package manager and a VS Code extension has to work offline. A copy does not update itself, and the existing drift check compares against a sibling checkout and skips silently when Core is absent — which is every CI run. beta.3 fixed a denial of service that stayed in all three bundles until someone measured them. `tools/sync-core.sh` now accepts `JSRAY_CORE_VERSION` and syncs from the published tarball, so the sync can run somewhere other than a maintainer's laptop; `sync-core-version.mjs` falls back to `package.json`, because `version.json` is not published. The integration side — a CI check that fails when the bundle is behind the `beta` dist-tag, and a scheduled workflow that opens a sync pull request — lives in those repositories.
+- `docs/development.md` records a convention that was never written down: **security releases do not batch.**
+
 ## [0.0.1-beta.3] — 2026-07-31
 
 ### Fixed

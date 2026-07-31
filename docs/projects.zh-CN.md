@@ -79,7 +79,7 @@ Core 的变更通过拷贝或打包 `dist/` 资产流向插件仓库。插件的
   (`jsray.org/dist/jsray.js`、`jsray.org/dist/themes/<name>.css`)。这个路径每次
   发版都会变 —— 对演示页是对的，对没人盯着的站点是错的。
 - `https://jsray.org/v/<version>/`：同样的文件按版本固化
-  (`jsray.org/v/0.0.1-beta.3/jsray.js`)。锁定到这里的页面，今天怎么渲染，
+  (`jsray.org/v/0.0.1-beta.4/jsray.js`)。锁定到这里的页面，今天怎么渲染，
   以后还怎么渲染。
 
 `tools/build-site.sh` 两者都生成。Cloudflare 每次部署都会整体替换资产包，因此
