@@ -42,13 +42,44 @@ After tuning, also update:
 
 ## Commit conventions
 
-Use short, imperative commit messages, e.g.:
+One imperative sentence, then a blank line, then as much body as the change
+deserves.
 
 ```
-add Rust language grammar
-fix regex tokenizer infinite loop on empty match
-docs: add Markdown-specific classes to the 22-token table
+Add a Rust grammar (#42)
+
+Rust needs the macro rule the other C-family languages do not, so it
+passes `rustMacros` to the shared factory rather than getting its own
+rule array.
 ```
+
+**Keep the subject under about 60 characters.** GitHub's file listing — the
+view that shows which commit last touched each file — truncates there, and a
+subject that survives it is the difference between a readable history and a
+column of ellipses. Everything that does not fit goes in the body, which has no
+limit and is where the *why* belongs. The subject says what changed; the body
+says why it needed changing.
+
+**Always keep the `(#N)`.** `gh pr merge --squash` appends the pull request
+number by default; passing `--subject` overrides that and loses it, which is
+how earlier commits here ended up with no way to reach the discussion behind
+them. Set the *pull request title* to the subject you want and let the merge
+supply the number.
+
+**No `feat:` / `fix:` prefixes.** Plain sentences read better in the file
+listing and match the history this repository already has. This is a
+coin-flip convention — Redis writes plain sentences, opencode uses
+Conventional Commits, both are fine — so the value is in picking one and
+holding to it, not in the choice.
+
+A release commit is a commit like any other:
+
+```
+Publish SRI hashes and harden the site (#5)
+```
+
+not a bare version number. `0.0.1-beta.3` names the release without saying
+anything about it, and it lands on every file the release touched.
 
 ## Pull Requests
 
