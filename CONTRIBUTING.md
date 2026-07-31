@@ -60,11 +60,18 @@ column of ellipses. Everything that does not fit goes in the body, which has no
 limit and is where the *why* belongs. The subject says what changed; the body
 says why it needed changing.
 
-**Always keep the `(#N)`.** `gh pr merge --squash` appends the pull request
-number by default; passing `--subject` overrides that and loses it, which is
-how earlier commits here ended up with no way to reach the discussion behind
-them. Set the *pull request title* to the subject you want and let the merge
-supply the number.
+**Let the merge supply the `(#N)` — do not type it yourself.** There are two
+ways to get this wrong and this repository has both on `main`:
+
+- Passing `--subject` to `gh pr merge --squash` overrides the default and drops
+  the number, leaving no way to reach the discussion behind the commit.
+- Writing `(#N)` into the commit yourself doubles it. For a single-commit pull
+  request GitHub squashes using *that commit's* subject rather than the pull
+  request title, then appends the number to whatever it found —
+  `Write down the commit convention (#6) (#6)` is what that looks like.
+
+So: write the subject with no number, set the pull request title to the same
+words, and merge with plain `gh pr merge --squash`.
 
 **No `feat:` / `fix:` prefixes.** Plain sentences read better in the file
 listing and match the history this repository already has. This is a
