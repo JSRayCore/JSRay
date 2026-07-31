@@ -510,6 +510,21 @@ test('docs: the contributing guide states the commit conventions it asks for', (
   assert.match(guide, /\(#N\)|\(#\d+\)/, 'the pull request number is not mentioned');
   assert.match(guide, /--subject/, 'nothing warns that --subject drops the PR number');
   assert.match(guide, /doubles it/, 'nothing warns that typing the number yourself doubles it');
+
+  // The rule that matters is the causal one; the rest is formatting.
+  assert.match(guide, /why it is better/, 'the guide does not ask for cause and effect');
+  assert.match(guide, /core\.hooksPath tools\/hooks/, 'the guide does not say how to enforce this');
+
+  // A documented hook that does not exist enforces nothing.
+  const hook = read('tools/hooks/commit-msg');
+  for (const [rule, pattern] of [
+    ['type prefixes', /chore:\*/],
+    ['bare version numbers', /a version number is not a description/],
+    ['hand-typed PR numbers', /do not type the \(#N\)/],
+    ['subject length', /-gt 72/],
+  ]) {
+    assert.match(hook, pattern, `the commit-msg hook does not reject ${rule}`);
+  }
   assert.doesNotMatch(guide, /22-token/, 'stale token count in the examples');
 
   // The examples have to obey the rule they illustrate.

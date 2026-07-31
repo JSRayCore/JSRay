@@ -46,19 +46,53 @@ One imperative sentence, then a blank line, then as much body as the change
 deserves.
 
 ```
-Add a Rust grammar (#42)
+Give Rust its macro rule without a grammar of its own
 
-Rust needs the macro rule the other C-family languages do not, so it
-passes `rustMacros` to the shared factory rather than getting its own
-rule array.
+The C-family factory covers everything else Rust needs, so the whole
+difference is `name!` — a `rustMacros` option costs one rule and keeps
+Rust reading as the same shape as the other nine languages built on it.
 ```
+
+The `(#N)` is missing on purpose: the merge appends it, and typing it here
+produces it twice. See below.
+
+**Say what changed and why it is better, not that you finished something.**
+This is the rule that matters; the rest are formatting. A subject that reports
+completion tells a reader nothing they could not see from the diff stat.
+
+```
+✗  brand: finalize the logo lockups from the designer source
+✗  chore: project identity is Jie <jie@jsray.org>
+✗  0.0.1-beta.3
+
+✓  Speed up XAUTOCLAIM by replacing per-entry lookups with a
+   single forward scan                              (redis 15505)
+✓  Prevent duplicate instances from replacing active Unix
+   sockets                                          (redis 15537)
+✓  Point latest at the newest prerelease while no stable exists
+```
+
+The good ones name the mechanism — *by replacing per-entry lookups*, *while no
+stable exists* — so the subject carries the causal link and the body can spend
+its space on the reasoning rather than restating the change. Where the
+mechanism does not fit in the subject, put it in the first line of the body;
+never drop it.
+
+Every non-trivial commit gets a body, and the body answers **why**: what was
+wrong before, what breaks if it stays that way, what was measured. A commit
+whose body only rephrases its subject is a commit with no body.
 
 **Keep the subject under about 60 characters.** GitHub's file listing — the
 view that shows which commit last touched each file — truncates there, and a
 subject that survives it is the difference between a readable history and a
-column of ellipses. Everything that does not fit goes in the body, which has no
-limit and is where the *why* belongs. The subject says what changed; the body
-says why it needed changing.
+column of ellipses.
+
+**No type prefixes.** `feat:`, `fix:`, `chore:`, and the invented ones this
+repository accumulated — `brand:`, `deploy:`, `build:` — classify a commit
+instead of describing it, and `chore:` in particular is a label for "not worth
+reading". A prefix is worth the characters only when it names *where* the
+change lands, the way Redis writes `Cluster: notify modules when node's own
+ip/port changes`. Module, not category.
 
 **Let the merge supply the `(#N)` — do not type it yourself.** There are two
 ways to get this wrong and this repository has both on `main`:
@@ -73,20 +107,27 @@ ways to get this wrong and this repository has both on `main`:
 So: write the subject with no number, set the pull request title to the same
 words, and merge with plain `gh pr merge --squash`.
 
-**No `feat:` / `fix:` prefixes.** Plain sentences read better in the file
-listing and match the history this repository already has. This is a
-coin-flip convention — Redis writes plain sentences, opencode uses
-Conventional Commits, both are fine — so the value is in picking one and
-holding to it, not in the choice.
+### Enforcing this
 
-A release commit is a commit like any other:
-
-```
-Publish SRI hashes and harden the site (#5)
+```sh
+git config core.hooksPath tools/hooks
 ```
 
-not a bare version number. `0.0.1-beta.3` names the release without saying
+`tools/hooks/commit-msg` refuses a type prefix, a bare version number, a
+hand-typed `(#N)`, and a subject over 72 characters; it warns past 60 and when
+there is no body. Rules only written down get applied after the fact, and after
+the fact the choice is between living with the subject and rewriting published
+history — which this project has already decided against. `--no-verify` exists
+for real exceptions.
+
+A release commit is a commit like any other — `Publish SRI hashes and harden
+the site`, not `0.0.1-beta.3`. A bare version names the release without saying
 anything about it, and it lands on every file the release touched.
+
+Whether to use Conventional Commits at all is a coin flip — Redis writes plain
+sentences, opencode uses `feat:`/`fix:`, both work at scales this project will
+not reach soon. The value is in holding to one. Plain sentences match the
+history already here.
 
 ## Pull Requests
 
