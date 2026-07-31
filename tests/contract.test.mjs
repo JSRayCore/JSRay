@@ -509,6 +509,7 @@ test('docs: the contributing guide states the commit conventions it asks for', (
   assert.match(guide, /60 characters/, 'no subject-length guidance');
   assert.match(guide, /\(#N\)|\(#\d+\)/, 'the pull request number is not mentioned');
   assert.match(guide, /--subject/, 'nothing warns that --subject drops the PR number');
+  assert.match(guide, /doubles it/, 'nothing warns that typing the number yourself doubles it');
   assert.doesNotMatch(guide, /22-token/, 'stale token count in the examples');
 
   // The examples have to obey the rule they illustrate.
