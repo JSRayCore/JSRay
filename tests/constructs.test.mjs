@@ -1,0 +1,241 @@
+// Node built-in test runner · no external dependencies
+// Run with: node --test tests/
+//
+// Real-world constructs, asserted on token *boundaries* rather than on "some
+// token appeared".
+//
+// The existing suites ask whether a rule fires. Every bug fixed in beta.5 fired
+// a rule — it simply claimed the wrong span. A Rust signature carrying two
+// lifetimes painted the twelve characters between them as one string, and a
+// test asserting "the string rule matched" would have passed while the code
+// on screen was ruined. So each case here names an exact substring and the
+// exact class it must carry, and several assert that a span is *not* swallowed.
+//
+// The recurring cause behind all of them is that string rules are written by
+// hand, once per grammar family, without encoding the language's real
+// terminator model — 35 chances to get it wrong. Until that is refactored, this
+// corpus is what stands between a sixth instance and a release.
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const JSRay = require('../dist/jsray.js');
+
+/** Reassemble a node's source text, however deeply it nests. */
+function textOf(node) {
+  if (typeof node === 'string') return node;
+  return Array.isArray(node.content) ? node.content.map(textOf).join('') : node.content;
+}
+
+/**
+ * Every token in the stream as `{type, text}`, parents included.
+ *
+ * An interpolating string is one token whose content is an array — `"a #{b} c"`
+ * in Ruby is a tk-string holding the interpolation as a nested tk-operator. A
+ * walker that descended into children and dropped the parent would never see
+ * the string as a whole, and would report a correct engine as broken. Both the
+ * container and what it contains are listed.
+ */
+function leaves(nodes, out = []) {
+  for (const node of nodes) {
+    if (typeof node === 'string') {
+      out.push({ type: '', text: node });
+      continue;
+    }
+
+    out.push({ type: node.type, text: textOf(node) });
+
+    if (Array.isArray(node.content)) leaves(node.content, out);
+  }
+  return out;
+}
+
+/** Assert `text` is carried by exactly one token, and that it has `type`. */
+function token(code, lang, type, text) {
+  const found = leaves(JSRay.tokenize(code, lang)).filter((t) => t.text === text);
+
+  assert.ok(
+    found.length,
+    `[${lang}] no token holds exactly ${JSON.stringify(text)}\n` +
+      `        stream: ${JSON.stringify(leaves(JSRay.tokenize(code, lang)))}`
+  );
+  assert.equal(
+    found[0].type,
+    `tk-${type}`,
+    `[${lang}] ${JSON.stringify(text)} should be tk-${type}, got ${found[0].type || 'plain text'}`
+  );
+}
+
+/** Assert no token has swallowed `text` inside a larger span of `type`. */
+function notSwallowed(code, lang, type, text) {
+  const swallower = leaves(JSRay.tokenize(code, lang)).find(
+    (t) => t.type === `tk-${type}` && t.text.includes(text) && t.text !== text
+  );
+
+  assert.equal(
+    swallower,
+    undefined,
+    `[${lang}] tk-${type} swallowed ${JSON.stringify(text)} inside ` +
+      `${JSON.stringify(swallower && swallower.text)}`
+  );
+}
+
+// ── Fixed in beta.5 ────────────────────────────────────────────────────────
+// Each of these produced visibly wrong output in 0.0.1-beta.4.
+
+test('Rust: a lifetime is a type, and does not open a string', () => {
+  const code = "struct Foo<'a> { s: &'a str, t: &'a str }";
+
+  token(code, 'rust', 'type', "'a");
+  // The original failure: everything from the first apostrophe to the next
+  // one became a single string, taking `> { s: &` with it.
+  notSwallowed(code, 'rust', 'string', '{');
+  token(code, 'rust', 'keyword', 'struct');
+});
+
+test('Rust: character literals still work beside lifetimes', () => {
+  token("let c = 'x';", 'rust', 'string', "'x'");
+  token("let n = '\\n';", 'rust', 'string', "'\\n'");
+  token("let e = '\\u{1F600}';", 'rust', 'string', "'\\u{1F600}'");
+});
+
+test('Go: a raw string literal spans lines and takes no escapes', () => {
+  token('s := `line1\nline2`', 'go', 'string', '`line1\nline2`');
+  // `\n` inside a raw string is two characters, not an escape.
+  token('s := `a\\nb`', 'go', 'string', '`a\\nb`');
+  // Quoted strings must be unaffected.
+  token('s := "plain"', 'go', 'string', '"plain"');
+});
+
+test('Java: a text block is one string, not three quote fragments', () => {
+  const code = 'String s = """\nhello\n""";';
+
+  token(code, 'java', 'string', '"""\nhello\n"""');
+  // The original failure: `""` matched first, leaving the body bare.
+  notSwallowed(code, 'java', 'string', 'String');
+  token("char c = 'a';", 'java', 'string', "'a'");
+});
+
+test('Triple-quoted strings hold in every language that has them', () => {
+  token('val s = """a"b"""', 'kotlin', 'string', '"""a"b"""');
+  token('val s = """x"""', 'scala', 'string', '"""x"""');
+  token('var s = """a""";', 'csharp', 'string', '"""a"""');
+  token("var s = '''a''';", 'dart', 'string', "'''a'''");
+});
+
+test('JavaScript: the BigInt suffix belongs to the number', () => {
+  token('const a = 10n;', 'js', 'number', '10n');
+  token('const b = 0x1fn;', 'js', 'number', '0x1fn');
+  // Ordinary numeric forms must not regress.
+  token('const c = 1_000_000;', 'js', 'number', '1_000_000');
+  token('const d = 0b1010;', 'js', 'number', '0b1010');
+  token('const e = 1.5e3;', 'js', 'number', '1.5e3');
+});
+
+test('Python: a PEP 701 field may carry the delimiting quote', () => {
+  const code = 'f"{a["k"]}"';
+
+  token(code, 'python', 'string', code);
+  // The original failure: two string tokens with `k` bare between them.
+  assert.equal(
+    leaves(JSRay.tokenize(code, 'python')).filter((t) => t.type === 'tk-string').length,
+    1,
+    'the f-string should be a single token'
+  );
+  // Plain and triple-quoted forms must not regress.
+  token('t = f"{x}"', 'python', 'string', 'f"{x}"');
+  token('s = "plain"', 'python', 'string', '"plain"');
+  token('d = """doc"""', 'python', 'string', '"""doc"""');
+});
+
+// ── Already correct · guarded against regression ───────────────────────────
+// These pass today. They are the constructs a string-rule refactor is most
+// likely to break, which is exactly why they are written down before it.
+
+test('JavaScript: a regex literal is not division, and division is not a regex', () => {
+  token('const r = /ab+/g;', 'js', 'regex', '/ab+/g');
+  const div = 'const d = a / b / c;';
+  assert.equal(
+    leaves(JSRay.tokenize(div, 'js')).filter((t) => t.type === 'tk-regex').length,
+    0,
+    'division must not be read as a regex literal'
+  );
+});
+
+test('JavaScript: a template literal holds its interpolation', () => {
+  const code = 'const s = `a${b}c`;';
+  notSwallowed(code, 'js', 'string', ';');
+  token('const s = `plain`;', 'js', 'string', '`plain`');
+});
+
+test('SQL: a doubled quote escapes, and a comment still ends the line', () => {
+  const code = "SELECT 'a''b' -- c\nFROM t";
+  token(code, 'sql', 'string', "'a''b'");
+  token(code, 'sql', 'comment', '-- c');
+  token(code, 'sql', 'keyword', 'FROM');
+});
+
+test('CSS: a custom property is a property, in declaration and in var()', () => {
+  const code = '.a{--x:1px;color:var(--x)}';
+  token(code, 'css', 'css-prop', '--x');
+  token(code, 'css', 'css-prop', 'color');
+});
+
+test('Shell: an interpolation inside a double-quoted string is not the end of it', () => {
+  const code = 'echo "value: ${HOME}/bin"';
+  notSwallowed(code, 'bash', 'string', 'echo');
+  token('echo "plain"', 'bash', 'string', '"plain"');
+});
+
+test('TypeScript: a generic constraint is not a comparison', () => {
+  const code = 'function f<T extends keyof U>(x: T) {}';
+  token(code, 'ts', 'keyword', 'extends');
+  token(code, 'ts', 'type', 'T');
+  token(code, 'ts', 'fn-decl', 'f');
+});
+
+test('Python: a decorator and a return annotation keep their own classes', () => {
+  const code = '@dec\ndef f(x: int) -> list[str]: ...';
+  token(code, 'python', 'decorator', '@dec');
+  token(code, 'python', 'keyword', 'def');
+  token(code, 'python', 'fn-decl', 'f');
+});
+
+test('Ruby: an interpolation does not terminate the string', () => {
+  const code = 'puts "a #{b} c"';
+  token(code, 'ruby', 'string', '"a #{b} c"');
+  notSwallowed(code, 'ruby', 'string', 'puts');
+});
+
+// ── No pathological input may take super-linear time ───────────────────────
+
+test('every new string form stays linear on pathological input', () => {
+  const shapes = [
+    ['go', '`' + 'a'.repeat(20000)],            // unterminated raw string
+    ['go', '`a'.repeat(10000)],                 // alternating backticks
+    ['java', '"""' + 'x'.repeat(20000)],        // unterminated text block
+    ['java', '"""a'.repeat(5000)],              // repeated openers
+    ['java', '"'.repeat(20000)],                // quote storm
+    ['csharp', '"""\n'.repeat(5000)],
+    ['python', 'f"' + '{a}'.repeat(10000)],     // unterminated f-string
+    ['python', 'f"' + '{'.repeat(10000)],       // unbalanced braces
+    ['python', 'f"' + '{"}'.repeat(5000)],      // quotes inside fields
+    ['js', '1n'.repeat(20000)],                 // BigInt storm
+    ['rust', "'".repeat(20000)],                // apostrophe storm
+  ];
+
+  for (const [lang, code] of shapes) {
+    const started = process.hrtime.bigint();
+    JSRay.highlight(code, lang);
+    const ms = Number(process.hrtime.bigint() - started) / 1e6;
+
+    // Generous by two orders of magnitude: the observed worst case is ~10ms,
+    // and catastrophic backtracking does not land near this bound — it hangs.
+    assert.ok(
+      ms < 1000,
+      `[${lang}] ${code.length} chars took ${ms.toFixed(0)}ms — check the ` +
+        `new pattern for alternatives that can match the same input two ways`
+    );
+  }
+});

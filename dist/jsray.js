@@ -78,7 +78,12 @@
   const RX = {
     string1: /"(?:\\.|[^"\\\n])*"/,
     string2: /'(?:\\.|[^'\\\n])*'/,
-    number:  /\b(?:0[xX][\da-fA-F_]+|0[bB][01_]+|0[oO][0-7_]+|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?)\b/,
+    // The trailing `n` marks a BigInt and belongs to the literal. It sits
+    // inside the match rather than after `\b`, because `10n` is one word to
+    // the boundary check — `\b` falls between `n` and whatever follows, so a
+    // pattern ending at `\b` matched nothing at all here rather than matching
+    // the digits alone.
+    number:  /\b(?:0[xX][\da-fA-F_]+|0[bB][01_]+|0[oO][0-7_]+|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?)n?\b/,
     ident:   /[A-Za-z_$][\w$]*/,
   };
 
@@ -231,6 +236,19 @@
     // Triple-quoted strings (with f/r/b prefixes). All strings before
     // comments so # inside "..." never becomes a comment.
     { cls: 'tk-string',  pattern: /(?:[rRbBuUfF]{0,2})("""[\s\S]*?"""|'''[\s\S]*?''')/ },
+    // PEP 701 lets a replacement field carry the same quote that delimits the
+    // string: `f"{a["k"]}"` is valid from Python 3.12. The general rule below
+    // stops at the first inner quote, which split one string into two tokens
+    // and left the key bare between them.
+    //
+    // The field is matched as a unit so its quotes are consumed with it. The
+    // three alternatives begin with different characters — `{`, `\`, and a
+    // class excluding both — so any input has exactly one way to match and the
+    // pattern cannot backtrack. A nested brace (a format spec such as `:>{w}`)
+    // is deliberately left to fall through to the general rule: covering it
+    // needs a nested quantifier, which is the ambiguous shape that caused the
+    // beta.4 denial of service.
+    { cls: 'tk-string',  pattern: /(?:[rRbB][fF]|[fF][rRbB]?)("(?:\{[^{}]*\}|\\.|[^"\\\n{])*"|'(?:\{[^{}]*\}|\\.|[^'\\\n{])*')/ },
     { cls: 'tk-string',  pattern: /(?:[rRbBuUfF]{0,2})("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')/ },
     { cls: 'tk-comment', pattern: /#.*/ },
 
@@ -477,6 +495,50 @@
       rules.splice(at, 0, { cls: 'tk-fn-builtin', pattern: /\b[A-Za-z_]\w*!/ });
     }
 
+    // Go's raw string literals run to the next backtick, cross newlines, and
+    // recognise no escapes whatsoever. No other C-like language in this set
+    // gives the character a meaning, and a negated class cannot backtrack, so
+    // the rule is both safe and self-contained.
+    if (opts.rawBacktick) {
+      rules.splice(rules.findIndex((r) => r.cls === 'tk-string'), 0, {
+        cls: 'tk-string',
+        pattern: /`[^`]*`/,
+      });
+    }
+
+    // Java text blocks, Kotlin and Scala raw strings, Swift multiline literals,
+    // C# raw strings and Dart's triple-quoted form all open with three quotes.
+    // The rule has to precede the single-line form: `"""` begins with `""`, so
+    // the general rule matched an empty string there and left the third quote
+    // and the entire body outside any token, splitting the block into debris.
+    if (opts.tripleQuote) {
+      rules.splice(rules.findIndex((r) => r.cls === 'tk-string'), 0, {
+        cls: 'tk-string',
+        pattern: /"""[\s\S]*?"""|'''[\s\S]*?'''/,
+      });
+    }
+
+    // In Rust `'a` is a lifetime, not the start of a character literal. The
+    // shared single-quote rule scans forward to the next apostrophe, so a
+    // signature carrying two of them — `<'a> { s: &'a str }` — painted
+    // everything in between as one string, swallowing real code.
+    //
+    // Both forms are spelled out and the greedy rule is REPLACED rather than
+    // preceded: leaving it in place would keep one pattern around that can
+    // still span from any apostrophe to any later one.
+    if (opts.lifetimes) {
+      const at = rules.findIndex((r) => r.cls === 'tk-string' && r.pattern.source[0] === "'");
+      rules.splice(
+        at,
+        1,
+        // Exactly one character or one escape, then the closing quote.
+        { cls: 'tk-string', pattern: /'(?:\\(?:u\{[\da-fA-F]{1,6}\}|.)|[^'\\\n])'/ },
+        // A lifetime occupies the slot a type parameter occupies, so it is
+        // typed as one — JSRay's vocabulary has no separate lifetime class.
+        { cls: 'tk-type', pattern: /'[A-Za-z_]\w*\b/ }
+      );
+    }
+
     // Languages whose declarations don't always end in `(...) {` (e.g. Scala's
     // `def f(x: Int): Int = ...`) name the declaring keywords explicitly.
     if (opts.fnDeclKeywords) {
@@ -516,7 +578,7 @@
     'static strictfp super switch synchronized this throw throws transient try var void volatile while'
   ).split(' ');
   const JAVA_BUILTINS = 'System String Integer Long Double Float Boolean Math Objects Arrays Collections List Map Set Optional println print'.split(' ');
-  G.java = cLikeGrammar(JAVA_KEYWORDS, JAVA_BUILTINS);
+  G.java = cLikeGrammar(JAVA_KEYWORDS, JAVA_BUILTINS, { tripleQuote: true });
 
   const CS_KEYWORDS = (
     'abstract as base bool break byte case catch char checked class const continue decimal default ' +
@@ -527,14 +589,14 @@
     'ushort using virtual void volatile while var async await record'
   ).split(' ');
   const CS_BUILTINS = 'Console WriteLine Write ReadLine Math List Dictionary IEnumerable Task string int bool var'.split(' ');
-  G.csharp = cLikeGrammar(CS_KEYWORDS, CS_BUILTINS);
+  G.csharp = cLikeGrammar(CS_KEYWORDS, CS_BUILTINS, { tripleQuote: true });
 
   const GO_KEYWORDS = (
     'break default func interface select case defer go map struct chan else goto package switch ' +
     'const fallthrough if range type continue for import return var'
   ).split(' ');
   const GO_BUILTINS = 'append cap close complex copy delete imag len make new panic print println real recover fmt'.split(' ');
-  G.go = cLikeGrammar(GO_KEYWORDS, GO_BUILTINS);
+  G.go = cLikeGrammar(GO_KEYWORDS, GO_BUILTINS, { rawBacktick: true });
 
   const RUST_KEYWORDS = (
     'as async await break const continue crate dyn else enum extern false fn for if impl in let ' +
@@ -542,7 +604,7 @@
     'use where while'
   ).split(' ');
   const RUST_BUILTINS = 'println format vec panic assert assert_eq Some None Ok Err Result Option String Vec Box'.split(' ');
-  G.rust = cLikeGrammar(RUST_KEYWORDS, RUST_BUILTINS, { rustMacros: true });
+  G.rust = cLikeGrammar(RUST_KEYWORDS, RUST_BUILTINS, { rustMacros: true, lifetimes: true });
 
   const SWIFT_KEYWORDS = (
     'associatedtype async await break case catch class continue default defer deinit do else enum ' +
@@ -551,7 +613,7 @@
     'subscript super switch throw throws true try typealias var where while'
   ).split(' ');
   const SWIFT_BUILTINS = 'print debugPrint assert precondition fatalError String Int Double Float Bool Array Dictionary Set Optional'.split(' ');
-  G.swift = cLikeGrammar(SWIFT_KEYWORDS, SWIFT_BUILTINS);
+  G.swift = cLikeGrammar(SWIFT_KEYWORDS, SWIFT_BUILTINS, { tripleQuote: true });
 
   const KOTLIN_KEYWORDS = (
     'as break class continue do else false for fun if in interface is null object package return ' +
@@ -561,7 +623,7 @@
     'lateinit noinline open operator out override private protected public reified sealed suspend tailrec vararg'
   ).split(' ');
   const KOTLIN_BUILTINS = 'println print arrayOf listOf mutableListOf mapOf setOf sequenceOf require check error String Int Long Double Float Boolean Unit Any Nothing'.split(' ');
-  G.kotlin = cLikeGrammar(KOTLIN_KEYWORDS, KOTLIN_BUILTINS);
+  G.kotlin = cLikeGrammar(KOTLIN_KEYWORDS, KOTLIN_BUILTINS, { tripleQuote: true });
 
   const DART_KEYWORDS = (
     'abstract as assert async await break case catch class const continue covariant default deferred ' +
@@ -570,7 +632,7 @@
     'rethrow return set show static super switch sync this throw true try typedef var void while with yield'
   ).split(' ');
   const DART_BUILTINS = 'print assert identical main String int double num bool List Map Set Future Stream Iterable Widget StatelessWidget StatefulWidget'.split(' ');
-  G.dart = cLikeGrammar(DART_KEYWORDS, DART_BUILTINS);
+  G.dart = cLikeGrammar(DART_KEYWORDS, DART_BUILTINS, { tripleQuote: true });
 
   const SCALA_KEYWORDS = (
     'abstract case catch class def do else enum extends false final finally for forSome given ' +
@@ -581,7 +643,7 @@
     'println print List Map Set Seq Vector Array Option Some None Either Left Right Future ' +
     'String Int Long Double Boolean Unit Any Nothing'
   ).split(' ');
-  G.scala = cLikeGrammar(SCALA_KEYWORDS, SCALA_BUILTINS, { fnDeclKeywords: ['def'] });
+  G.scala = cLikeGrammar(SCALA_KEYWORDS, SCALA_BUILTINS, { fnDeclKeywords: ['def'], tripleQuote: true });
 
   const OBJC_KEYWORDS = C_KEYWORDS.concat((
     'id instancetype self super in out inout bycopy byref oneway ' +
