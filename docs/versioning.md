@@ -4,7 +4,7 @@
 
 JSRay Core uses single-project versioning. Platform plugins keep their own version files in their own repositories.
 
-Current version: `0.0.1-beta.4`
+Current version: `0.0.1-beta.5`
 Current channel: `beta`
 Public beta released: yes
 

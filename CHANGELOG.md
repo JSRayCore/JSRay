@@ -5,6 +5,27 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [0.0.1-beta.5] — 2026-08-21
+
+The first release since beta.1 that changes what the highlighter puts on screen. Five literal forms were tokenised by rules that fired correctly and claimed the wrong span — the failure mode a test asking "did the string rule match?" cannot see, because in every one of these cases it did.
+
+### Fixed
+
+- **Rust lifetimes no longer swallow the code between them.** `'a` was read as the opening of a character literal, so the shared single-quote rule scanned forward to the next apostrophe: `struct Foo<'a> { s: &'a str }` painted `'a> { s: &'` as one string, losing twelve characters of real code into it. Any signature with two lifetimes — which is most of them — rendered wrong. A lifetime is now typed as the type parameter it stands in for, and the greedy rule is *replaced* rather than preceded, so no pattern survives that can still span from one apostrophe to a later one. Character literals, including `'\u{1F600}'`, are unaffected.
+- **Go raw string literals are strings.** Nothing gave the backtick a meaning, so a `` `line1\nline2` `` literal rendered as bare unstyled text. They span newlines and recognise no escapes, which is now what the rule says.
+- **Triple-quoted strings survive their opener.** `"""` begins with `""`, so the single-line rule matched an empty string and left the third quote and the entire body outside any token. Java text blocks, Kotlin and Scala raw strings, Swift multiline literals, C# raw strings and Dart's triple-quoted form all share the opener and all shared the bug.
+- **A BigInt suffix belongs to its number.** `10n` and `0x1fn` produced no number token at all — not the digits alone, nothing — because `10n` is a single word to a word boundary and the pattern closed on `\b`.
+- **A Python replacement field may carry the delimiting quote.** PEP 701 makes `f"{a["k"]}"` valid from 3.12; the rule stopped at the first inner quote and split one string into two tokens with the key left bare between them. A field is now consumed whole. A nested brace — a format spec such as `:>{w}` — still falls through to the general rule, because covering it needs a nested quantifier, and that is the ambiguous shape behind the denial of service fixed in beta.3.
+
+### Added
+
+- **A construct corpus, asserted on token boundaries.** `tests/constructs.test.mjs` covers the five forms above plus the constructs most likely to break when the string rules are eventually rewritten — regex versus division, template and interpolating strings, doubled SQL quotes, CSS custom properties, generic constraints — and asserts which exact substring carries which exact class, rather than that some token appeared. Pathological inputs for every new pattern run under a time bound in the same file. The shared cause behind all five is that string rules are hand-written once per grammar family without encoding a terminator model: thirty-five chances to get it wrong. Rewriting them onto one builder is an API-shaped change and waits for 0.0.2; until then this corpus is what stands between a sixth instance and a release.
+- **A commit-msg hook.** `tools/hooks/commit-msg` rejects type prefixes, bare version numbers, hand-typed `(#N)` and over-long subjects, and is enabled with `git config core.hooksPath tools/hooks`.
+
+### Changed
+
+- **The commit convention says what a subject is for.** It read "short, imperative" and produced short, imperative subjects that reported completion — which the diff stat already said. The rule is now causal: the subject names the mechanism and its effect. Type prefixes are gone; `feat:` classifies rather than describes, `chore:` reads as "not worth your time", and the invented ones here were not from any standard. Both ways to lose a pull request number are written down, including the one this repository demonstrated: typing `(#N)` yourself yields `(#6) (#6)`, because a single-commit pull request squashes using the commit's own subject and appends the number to whatever it finds.
+
 ## [0.0.1-beta.4] — 2026-08-01
 
 No engine changes. `dist/jsray.js` is byte-for-byte the 0.0.1-beta.3 build — this release is about what surrounds it: what the package publishes, what the site sends, and how a copied snapshot stays current.
