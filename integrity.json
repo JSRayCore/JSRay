@@ -4,7 +4,7 @@
   "algorithm": "sha256",
   "note": "Base64 SHA-256 digests of the released Core assets. Integrations copy the relevant digest at sync time and verify their bundled snapshot against it.",
   "files": {
-    "dist/jsray.js": "sha256-eb/qvifq+Wribb279/Ilhf6X23gYWQ4sF/5u5iQ4DpM=",
+    "dist/jsray.js": "sha256-1M+4NZsN2gXzVri3wMaHh/JygUJ6fAPHfgibfJzhp/w=",
     "dist/jsray.css": "sha256-6Fuva+aZwCcmltNi2oN+1yWIJoKE+1rLpUxZvD9iutc=",
     "dist/themes/aurora.css": "sha256-S8X+R8XZNC8WRdHOen839zMkPxVFol6PPTrpZibbeJA=",
     "dist/themes/default.css": "sha256-vENOigRjwn1hW6wPjdM4tbZ58Ja44FMsa+akavPiMSI=",

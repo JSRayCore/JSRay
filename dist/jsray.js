@@ -484,7 +484,18 @@
       { cls: 'tk-fn-builtin', pattern: wordPattern(builtins.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))) },
       { cls: 'tk-property', pattern: /(\.|::|->)[A-Za-z_]\w*/, lookbehind: true },
       { cls: 'tk-function', pattern: /\b[A-Za-z_]\w*(?=\s*\()/ },
-      { cls: 'tk-number', pattern: /\b(?:0[xX][\da-fA-F_]+|0[bB][01_]+|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?[fFdDuUlL]*)\b/ },
+      // A type suffix is part of the literal, and a literal that ends in one
+      // the pattern does not know produced no token at all rather than the
+      // digits alone — `\b` sits between `0` and `i`, not after `1_000`. Java's
+      // `L` was covered and Rust's `i64`, Go's `i` and C#'s `m` were not.
+      //
+      // Rust's word-shaped suffixes are listed before the single-letter class
+      // so `i64` is taken whole instead of `i` leaving `64` behind.
+      //
+      // The hexadecimal branch admits a binary exponent (`0x1p3`) but only with
+      // the `p` present, which C and C++ require anyway. Without that guard the
+      // optional fraction would swallow the dot in Rust's `0xff.count_ones()`.
+      { cls: 'tk-number', pattern: /\b(?:0[xX][\da-fA-F_]*(?:\.[\da-fA-F_]*)?[pP][+-]?\d+|0[xX][\da-fA-F_]+|0[bB][01_]+|0[oO][0-7_]+|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?)(?:[iu](?:8|16|32|64|128|size)|f(?:32|64)|[fFdDuUlLmMi]*)\b/ },
       { cls: 'tk-operator', pattern: /::|->|=>|\.\.|<<=?|>>>?=?|<=|>=|==|!=|&&|\|\||\+\+|--|[+\-*/%&|^~!<>=?]=?/ },
       { cls: 'tk-punct', pattern: /[{}[\]();,.:]/ },
     ];
@@ -503,6 +514,32 @@
       rules.splice(rules.findIndex((r) => r.cls === 'tk-string'), 0, {
         cls: 'tk-string',
         pattern: /`[^`]*`/,
+      });
+    }
+
+    // C++ and Rust raw strings exist so a literal can hold quotes, which is
+    // precisely what defeats the general rule: `R"(a "b" c)"` closed at the
+    // inner quote, split into two strings, and left `b` bare between them —
+    // the same failure as a triple-quoted block, in the one syntax whose
+    // entire purpose is to contain the character that causes it.
+    //
+    // Both languages balance the delimiter with a count the author chooses:
+    // C++ names it (`R"tag(…)tag"`), Rust counts hashes (`r##"…"##`). The
+    // backreference matches only the same count that opened, so `"#` inside an
+    // `r##` literal does not close it. Backreferences cannot be nested here,
+    // and the lazy body is bounded by a literal terminator, so neither form
+    // opens a backtracking path.
+    if (opts.rawDelimited === 'cpp') {
+      rules.splice(rules.findIndex((r) => r.cls === 'tk-string'), 0, {
+        cls: 'tk-string',
+        pattern: /\b(?:[uU]8?|[LU])?R"([^\s()\\]{0,16})\([\s\S]*?\)\1"/,
+      });
+    }
+
+    if (opts.rawDelimited === 'rust') {
+      rules.splice(rules.findIndex((r) => r.cls === 'tk-string'), 0, {
+        cls: 'tk-string',
+        pattern: /\b(?:b?r)(#{0,16})"[\s\S]*?"\1/,
       });
     }
 
@@ -569,7 +606,7 @@
     'true try typedef typeid typename union unsigned using virtual void volatile while'
   ).split(' ');
   const CPP_BUILTINS = 'std cout cin cerr endl printf scanf malloc free make_unique make_shared move forward'.split(' ');
-  G.cpp = cLikeGrammar(CPP_KEYWORDS, CPP_BUILTINS);
+  G.cpp = cLikeGrammar(CPP_KEYWORDS, CPP_BUILTINS, { rawDelimited: 'cpp' });
 
   const JAVA_KEYWORDS = (
     'abstract assert boolean break byte case catch char class const continue default do double ' +
@@ -604,7 +641,7 @@
     'use where while'
   ).split(' ');
   const RUST_BUILTINS = 'println format vec panic assert assert_eq Some None Ok Err Result Option String Vec Box'.split(' ');
-  G.rust = cLikeGrammar(RUST_KEYWORDS, RUST_BUILTINS, { rustMacros: true, lifetimes: true });
+  G.rust = cLikeGrammar(RUST_KEYWORDS, RUST_BUILTINS, { rustMacros: true, lifetimes: true, rawDelimited: 'rust' });
 
   const SWIFT_KEYWORDS = (
     'associatedtype async await break case catch class continue default defer deinit do else enum ' +
@@ -670,6 +707,12 @@
   const RB_BUILTINS = 'puts print p gets raise lambda proc loop each map select reject reduce new'.split(' ');
 
   G.ruby = [
+    // `=begin` / `=end` blocks come before the strings that come before
+    // everything else. The markers are only special at column zero, so the
+    // anchors here are load-bearing rather than decorative. Without this rule
+    // a documentation block was read as ordinary code — the body's words came
+    // out coloured as function calls and keywords.
+    { cls: 'tk-comment', pattern: /^=begin\b[\s\S]*?^=end.*$/m },
     // Strings must come before comments, else # inside "..." (incl. #{} interpolation)
     // is eaten as a comment. String bodies stay single-line so an unpaired quote
     // in a comment can't swallow following lines.

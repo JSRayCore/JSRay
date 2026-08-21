@@ -7,7 +7,9 @@ versioning follows [SemVer](https://semver.org/).
 
 ## [0.0.1-beta.5] — 2026-08-21
 
-The first release since beta.1 that changes what the highlighter puts on screen. Five literal forms were tokenised by rules that fired correctly and claimed the wrong span — the failure mode a test asking "did the string rule match?" cannot see, because in every one of these cases it did.
+The first release since beta.1 that changes what the highlighter puts on screen. Eight literal forms were tokenised by rules that either fired and claimed the wrong span, or did not exist — the failure mode a test asking "did the string rule match?" cannot see, because in most of these cases it did.
+
+Not everything found is fixed here. Heredocs (`<<<EOT` in PHP, `<<~EOT` in Ruby, `<<EOF` in shell), Ruby `%w[]` and `%q()`, Perl `q{}` and `qq{}`, Elixir sigils, and Haskell's nested block comments have no rule at all and are listed in the roadmap rather than patched in a fix release; nesting in particular cannot be done with a flat pattern. A literal prefix that sits outside its string — `@"…"`, `$"…"`, `r"…"`, `#"…"#`, `s"…"` — is cosmetic and left alone.
 
 ### Fixed
 
@@ -15,6 +17,9 @@ The first release since beta.1 that changes what the highlighter puts on screen.
 - **Go raw string literals are strings.** Nothing gave the backtick a meaning, so a `` `line1\nline2` `` literal rendered as bare unstyled text. They span newlines and recognise no escapes, which is now what the rule says.
 - **Triple-quoted strings survive their opener.** `"""` begins with `""`, so the single-line rule matched an empty string and left the third quote and the entire body outside any token. Java text blocks, Kotlin and Scala raw strings, Swift multiline literals, C# raw strings and Dart's triple-quoted form all share the opener and all shared the bug.
 - **A BigInt suffix belongs to its number.** `10n` and `0x1fn` produced no number token at all — not the digits alone, nothing — because `10n` is a single word to a word boundary and the pattern closed on `\b`.
+- **C++ and Rust raw strings hold the quotes they exist to hold.** `R"(a "b" c)"` and `r#"a "b" c"#` closed at the inner quote and left `b` bare between two string fragments — the same failure as a triple-quoted block, in the one syntax whose entire purpose is to contain the character that causes it. Both delimiters are counted or named (`R"tag(…)tag"`, `r##"…"##`) and are now matched as such, so a sequence that merely resembles the terminator does not end the literal.
+- **A numeric type suffix belongs to its literal.** `1_000i64`, `1_000i`, `1.5m` and `0x1p3` produced no number token at all — not the digits alone, nothing — because the word boundary sits between the last digit and the suffix letter. Rust's integer and float suffixes, Go's imaginary `i`, C#'s decimal `m` and the C hexadecimal exponent are now part of the literal. The hexadecimal fraction requires its `p`, so `0xff.count_ones()` keeps its method call rather than losing the dot to a number.
+- **A Ruby `=begin` block is a comment.** It had no rule, so documentation blocks were highlighted as ordinary code — words in the body came out coloured as function calls and keywords. The markers are only special at column zero and the rule anchors accordingly.
 - **A Python replacement field may carry the delimiting quote.** PEP 701 makes `f"{a["k"]}"` valid from 3.12; the rule stopped at the first inner quote and split one string into two tokens with the key left bare between them. A field is now consumed whole. A nested brace — a format spec such as `:>{w}` — still falls through to the general rule, because covering it needs a nested quantifier, and that is the ambiguous shape behind the denial of service fixed in beta.3.
 
 ### Added

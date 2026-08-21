@@ -124,6 +124,23 @@ test('Triple-quoted strings hold in every language that has them', () => {
   token("var s = '''a''';", 'dart', 'string', "'''a'''");
 });
 
+test('C++ and Rust raw strings hold the quotes they exist to hold', () => {
+  // The syntax exists so a literal can contain a quote, which is exactly what
+  // closed the general rule early and left the middle bare.
+  token('auto s = R"(raw "quoted" here)";', 'cpp', 'string', 'R"(raw "quoted" here)"');
+  token('let s = r#"has "quotes" in"#;', 'rust', 'string', 'r#"has "quotes" in"#');
+
+  // The delimiter is counted or named, so a sequence that merely looks like
+  // the terminator does not end the literal.
+  token('auto s = R"tag(has )" inside)tag";', 'cpp', 'string', 'R"tag(has )" inside)tag"');
+  token('let s = br##"a "# b"##;', 'rust', 'string', 'br##"a "# b"##');
+  token('let s = r"plain raw";', 'rust', 'string', 'r"plain raw"');
+
+  // A capital R calling a function is not a raw string.
+  token('int r = a; R(b);', 'cpp', 'function', 'R');
+  token('auto s = "normal";', 'cpp', 'string', '"normal"');
+});
+
 test('JavaScript: the BigInt suffix belongs to the number', () => {
   token('const a = 10n;', 'js', 'number', '10n');
   token('const b = 0x1fn;', 'js', 'number', '0x1fn');
@@ -147,6 +164,34 @@ test('Python: a PEP 701 field may carry the delimiting quote', () => {
   token('t = f"{x}"', 'python', 'string', 'f"{x}"');
   token('s = "plain"', 'python', 'string', '"plain"');
   token('d = """doc"""', 'python', 'string', '"""doc"""');
+});
+
+test('A numeric type suffix belongs to its literal', () => {
+  // Missing a suffix produced no number token at all, not the digits alone:
+  // the word boundary sits between the last digit and the suffix letter.
+  token('let x = 1_000i64;', 'rust', 'number', '1_000i64');
+  token('let y = 2.5f32;', 'rust', 'number', '2.5f32');
+  token('x := 1_000i', 'go', 'number', '1_000i');
+  token('var x = 1.5m;', 'csharp', 'number', '1.5m');
+  token('auto x = 0x1p3;', 'cpp', 'number', '0x1p3');
+
+  // Java's `L` was already covered and must stay so.
+  token('long x = 1_000L;', 'java', 'number', '1_000L');
+
+  // The hexadecimal fraction requires its `p` exponent, or this dot would be
+  // eaten and the method call with it.
+  token('let n = 0xff.count_ones();', 'rust', 'number', '0xff');
+  token('let n = 0xff.count_ones();', 'rust', 'property', 'count_ones');
+});
+
+test('Ruby: an =begin block is a comment, not code', () => {
+  const code = '=begin\ndoc here\n=end\nputs 1';
+
+  token(code, 'ruby', 'comment', '=begin\ndoc here\n=end');
+  // The original failure: the body was highlighted as code, `doc` included.
+  token(code, 'ruby', 'fn-builtin', 'puts');
+  // The markers only count at column zero.
+  token('x = 1 # c', 'ruby', 'comment', '# c');
 });
 
 // ── Already correct · guarded against regression ───────────────────────────
@@ -223,6 +268,16 @@ test('every new string form stays linear on pathological input', () => {
     ['python', 'f"' + '{"}'.repeat(5000)],      // quotes inside fields
     ['js', '1n'.repeat(20000)],                 // BigInt storm
     ['rust', "'".repeat(20000)],                // apostrophe storm
+    ['cpp', 'R"(' + 'a'.repeat(20000)],         // unterminated raw string
+    ['cpp', 'R"(a'.repeat(5000)],               // repeated raw openers
+    ['cpp', 'R"' + 't'.repeat(5000) + '('],     // oversized delimiter tag
+    ['rust', 'r#"' + 'a'.repeat(20000)],        // unterminated hashed raw
+    ['rust', 'r' + '#'.repeat(10000) + '"'],    // hash storm
+    ['rust', '1i'.repeat(20000)],               // numeric suffix storm
+    ['rust', '1' + 'i'.repeat(10000)],          // one long false suffix
+    ['cpp', '0x1p'.repeat(10000)],              // hex exponent storm
+    ['go', '1' + '_'.repeat(20000)],            // separator storm
+    ['ruby', '=begin\n'.repeat(5000)],          // unterminated block comments
   ];
 
   for (const [lang, code] of shapes) {
