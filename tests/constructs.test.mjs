@@ -194,6 +194,42 @@ test('Ruby: an =begin block is a comment, not code', () => {
   token('x = 1 # c', 'ruby', 'comment', '# c');
 });
 
+test('A language feature is a keyword the release after it ships', () => {
+  // These are all restricted identifiers rather than reserved words, which is
+  // why they were absent: the grammars were written from the reserved-word
+  // lists. Modern code in each language leads with one of them, so the
+  // headline construct rendered with its first word uncoloured.
+  token('record Point(int x) {}', 'java', 'keyword', 'record');
+  token('sealed interface S permits C {}', 'java', 'keyword', 'sealed');
+  token('sealed interface S permits C {}', 'java', 'keyword', 'permits');
+  token('actor Counter {}', 'swift', 'keyword', 'actor');
+  token('func f() -> some View {}', 'swift', 'keyword', 'some');
+  token('func f(v any) any { return v }', 'go', 'keyword', 'any');
+  token('class A { required int X { get; init; } }', 'csharp', 'keyword', 'required');
+  token('auto x = co_await f();', 'cpp', 'keyword', 'co_await');
+  token('enum Suit {}', 'php', 'keyword', 'enum');
+  token('class A { override f(): void {} }', 'ts', 'keyword', 'override');
+  token('MERGE INTO t', 'sql', 'keyword', 'MERGE');
+
+  // `record` and `actor` introduce a type, so the name after them is one.
+  token('record Point(int x) {}', 'java', 'type', 'Point');
+  token('actor Counter {}', 'swift', 'type', 'Counter');
+});
+
+test('Two contextual keywords are deliberately not claimed', () => {
+  // Python 3.12's `type` statement and C# 11's file-local types are real, but
+  // both words are far more common as an ordinary call and an ordinary
+  // variable. Colouring them would cost more reads than it would pay for.
+  token('t = type(x)', 'python', 'fn-builtin', 'type');
+
+  // Plain runs arrive as whole chunks rather than word by word, so the check
+  // is that nothing claimed the word — not that a leaf equals it exactly.
+  const claimed = leaves(JSRay.tokenize('var file = File.Open(p);', 'csharp')).find(
+    (t) => t.type === 'tk-keyword' && t.text === 'file'
+  );
+  assert.equal(claimed, undefined, '`file` should stay an ordinary identifier');
+});
+
 // ── Already correct · guarded against regression ───────────────────────────
 // These pass today. They are the constructs a string-rule refactor is most
 // likely to break, which is exactly why they are written down before it.

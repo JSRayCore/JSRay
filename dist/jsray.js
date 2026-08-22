@@ -95,7 +95,7 @@
     'else enum export extends finally for from function get if implements import in ' +
     'instanceof interface let namespace new of package private protected public readonly ' +
     'return satisfies set static super switch this throw try type typeof var void while ' +
-    'with yield declare abstract is keyof infer'
+    'with yield declare abstract is keyof infer accessor override asserts using'
   ).split(' ');
 
   const JS_BUILTINS = (
@@ -421,7 +421,7 @@
     'endwhile eval exit extends final finally fn for foreach function global goto if ' +
     'implements include include_once instanceof insteadof interface isset list match ' +
     'namespace new or print private protected public readonly require require_once return ' +
-    'static switch throw trait try unset use var while xor yield'
+    'static switch throw trait try unset use var while xor yield enum'
   ).split(' ');
 
   const PHP_BUILTIN_FNS = (
@@ -477,7 +477,7 @@
       { cls: 'tk-string', pattern: /'(?:\\.|[^'\\\n])*'/ },
       { cls: 'tk-comment', pattern: /\/\/.*/ },
       { cls: 'tk-var-const', pattern: /\b[A-Z][A-Z0-9_]{2,}\b/ },
-      { cls: 'tk-type', pattern: /(\b(?:class|struct|interface|enum|trait|extends|implements|namespace|using|new|object|protocol|extension|mixin)\s+)[A-Za-z_]\w*/, lookbehind: true },
+      { cls: 'tk-type', pattern: /(\b(?:class|struct|interface|enum|trait|extends|implements|namespace|using|new|object|protocol|extension|mixin|record|actor)\s+)[A-Za-z_]\w*/, lookbehind: true },
       { cls: 'tk-fn-decl', pattern: new RegExp('\\b(?!(?:' + CLIKE_DECL_SKIP + ')\\b)[A-Za-z_]\\w*(?=\\s*\\([^;{}]*\\)\\s*(?:const\\s*)?(?:->\\s*[A-Za-z_:][\\w:<>]*)?\\{)') },
       { cls: 'tk-keyword', pattern: wordPattern(keywords) },
       { cls: 'tk-keyword', pattern: /\b(?:true|false|null|nullptr|nil|None)\b/ },
@@ -603,7 +603,8 @@
     'else enum explicit export extern false float for friend if inline int long mutable ' +
     'namespace new noexcept nullptr operator private protected public register reinterpret_cast ' +
     'requires return short signed sizeof static static_cast struct switch template this throw ' +
-    'true try typedef typeid typename union unsigned using virtual void volatile while'
+    'true try typedef typeid typename union unsigned using virtual void volatile while ' +
+    'co_await co_yield co_return'
   ).split(' ');
   const CPP_BUILTINS = 'std cout cin cerr endl printf scanf malloc free make_unique make_shared move forward'.split(' ');
   G.cpp = cLikeGrammar(CPP_KEYWORDS, CPP_BUILTINS, { rawDelimited: 'cpp' });
@@ -612,7 +613,8 @@
     'abstract assert boolean break byte case catch char class const continue default do double ' +
     'else enum exports extends final finally float for if implements import instanceof int ' +
     'interface long module native new package private protected public requires return short ' +
-    'static strictfp super switch synchronized this throw throws transient try var void volatile while'
+    'static strictfp super switch synchronized this throw throws transient try var void volatile while ' +
+    'record sealed permits yield'
   ).split(' ');
   const JAVA_BUILTINS = 'System String Integer Long Double Float Boolean Math Objects Arrays Collections List Map Set Optional println print'.split(' ');
   G.java = cLikeGrammar(JAVA_KEYWORDS, JAVA_BUILTINS, { tripleQuote: true });
@@ -623,14 +625,14 @@
     'goto if implicit in int interface internal is lock long namespace new null object operator ' +
     'out override params private protected public readonly ref return sbyte sealed short sizeof ' +
     'stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ' +
-    'ushort using virtual void volatile while var async await record'
+    'ushort using virtual void volatile while var async await record init required nint nuint'
   ).split(' ');
   const CS_BUILTINS = 'Console WriteLine Write ReadLine Math List Dictionary IEnumerable Task string int bool var'.split(' ');
   G.csharp = cLikeGrammar(CS_KEYWORDS, CS_BUILTINS, { tripleQuote: true });
 
   const GO_KEYWORDS = (
     'break default func interface select case defer go map struct chan else goto package switch ' +
-    'const fallthrough if range type continue for import return var'
+    'const fallthrough if range type continue for import return var any'
   ).split(' ');
   const GO_BUILTINS = 'append cap close complex copy delete imag len make new panic print println real recover fmt'.split(' ');
   G.go = cLikeGrammar(GO_KEYWORDS, GO_BUILTINS, { rawBacktick: true });
@@ -638,7 +640,7 @@
   const RUST_KEYWORDS = (
     'as async await break const continue crate dyn else enum extern false fn for if impl in let ' +
     'loop match mod move mut pub ref return self Self static struct super trait true type unsafe ' +
-    'use where while'
+    'use where while union'
   ).split(' ');
   const RUST_BUILTINS = 'println format vec panic assert assert_eq Some None Ok Err Result Option String Vec Box'.split(' ');
   G.rust = cLikeGrammar(RUST_KEYWORDS, RUST_BUILTINS, { rustMacros: true, lifetimes: true, rawDelimited: 'rust' });
@@ -647,7 +649,7 @@
     'associatedtype async await break case catch class continue default defer deinit do else enum ' +
     'extension fallthrough false fileprivate final for func guard if import in init inout internal ' +
     'is let nil open operator private protocol public repeat rethrows return self Self static struct ' +
-    'subscript super switch throw throws true try typealias var where while'
+    'subscript super switch throw throws true try typealias var where while actor some'
   ).split(' ');
   const SWIFT_BUILTINS = 'print debugPrint assert precondition fatalError String Int Double Float Bool Array Dictionary Set Optional'.split(' ');
   G.swift = cLikeGrammar(SWIFT_KEYWORDS, SWIFT_BUILTINS, { tripleQuote: true });
@@ -777,7 +779,7 @@
     'select from where join inner left right full outer on group by order having limit offset ' +
     'insert into values update set delete create alter drop table view index primary key foreign ' +
     'references constraint not null default unique check and or as distinct union all case when ' +
-    'then else end exists in between like is asc desc returning with'
+    'then else end exists in between like is asc desc returning with window lateral merge using'
   ).split(' ');
   const SQL_BUILTINS = 'count sum avg min max coalesce nullif lower upper substr substring now date'.split(' ');
 

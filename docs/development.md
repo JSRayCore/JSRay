@@ -395,6 +395,15 @@ deliberately deferred).
   ordinary code today. Haskell's nested `{- {- -} -}` comments close at the
   first inner terminator and cannot be fixed with a flat pattern at all; they
   need the same nesting support embedded languages will need.
+- **Language detection tuning** (audited for beta.5, deferred): detection is
+  correct on all 22 realistic multi-line samples, and correctly returns empty
+  for prose, digits and single words rather than guessing. On one-line
+  snippets it misreads Go's `func f(x int) int` as Swift and a shell
+  `x=1; echo "$x"` as PHP, and returns empty for short C#, Kotlin and TOML.
+  Retuning the scores changes the relative ranking of all 83 grammars at
+  once, so it needs its own corpus and belongs with the 0.0.2 engine work —
+  the failure is mild (usually plain text) and only reachable when the caller
+  supplies no language, which the integrations normally do.
 - **Cosmetic, deliberately left**: a literal prefix that sits outside its
   string — `@"…"` and `$"…"` in C#, `r"…"` in Rust, `#"…"#` in Swift, `s"…"`
   in Scala — and the sign in a CSS `-1.5em` or the leading dot in JavaScript's
