@@ -388,3 +388,28 @@ deliberately deferred).
   never silently pinnable.
 - **Core**: minification is deliberately absent (zero-build); revisit at
   public beta.
+- **Literal forms with no rule** (found while auditing for beta.5, deferred
+  because they are absent features rather than wrong spans): heredocs —
+  `<<<EOT` in PHP, `<<~EOT` in Ruby, `<<EOF` in shell — plus Ruby `%w[]` and
+  `%q()`, Perl `q{}` and `qq{}`, and Elixir sigils. Each renders its body as
+  ordinary code today. Haskell's nested `{- {- -} -}` comments close at the
+  first inner terminator and cannot be fixed with a flat pattern at all; they
+  need the same nesting support embedded languages will need.
+- **Language detection tuning** (audited for beta.5, deferred): detection is
+  correct on all 22 realistic multi-line samples, and correctly returns empty
+  for prose, digits and single words rather than guessing. On one-line
+  snippets it misreads Go's `func f(x int) int` as Swift and a shell
+  `x=1; echo "$x"` as PHP, and returns empty for short C#, Kotlin and TOML.
+  Retuning the scores changes the relative ranking of all 83 grammars at
+  once, so it needs its own corpus and belongs with the 0.0.2 engine work —
+  the failure is mild (usually plain text) and only reachable when the caller
+  supplies no language, which the integrations normally do.
+- **Cosmetic, deliberately left**: a literal prefix that sits outside its
+  string — `@"…"` and `$"…"` in C#, `r"…"` in Rust, `#"…"#` in Swift, `s"…"`
+  in Scala — and the sign in a CSS `-1.5em` or the leading dot in JavaScript's
+  `.5`. The literal is coloured; one character in front of it is not.
+- **The string rules themselves** are hand-written once per grammar family
+  without encoding a terminator model, which is what produced every fix in
+  beta.5. Rewriting them onto one builder changes the shape of the objects in
+  `languages`, which is a declared public type, so it waits for the API pass in
+  0.0.2. `tests/constructs.test.mjs` is what guards the behaviour until then.

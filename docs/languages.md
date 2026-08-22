@@ -18,6 +18,7 @@ Recognizes:
 - Builtin functions (as `.fn(` or `fn(`): `log`, `fetch`, `parseInt`, ...
 - Template strings `` `...${id}...` `` with inline `${}` interpolation highlighted
 - Regex literals `/pattern/flags`, context-sensitive (only after `=` `(` `,` `return`, etc.)
+- Numeric literals including separators (`1_000_000`), binary/octal/hex, and the BigInt suffix (`10n`)
 - `ALL_CAPS` constants, `.property` access, `@decorator`
 
 ```ts
@@ -40,6 +41,7 @@ Recognizes:
 - `self`, `cls`, `__name__`, `__init__`, `__file__` → `tk-var-builtin`
 - 80+ builtin functions (`print`, `len`, `range`, `isinstance`, ...)
 - Triple-quoted strings, plus f-string / r-string / b-string prefixes
+- PEP 701 replacement fields may carry the delimiting quote (`f"{a["k"]}"`); a nested brace inside a format spec is not yet covered
 - `@decorator`
 
 ```python
@@ -73,7 +75,7 @@ function render_code($code) {
 
 **class**: `language-go` `language-golang`
 
-Recognizes `package`, `import`, `func`, declarations, builtin calls, strings, comments, numbers, and selector calls such as `fmt.Println`.
+Recognizes `package`, `import`, `func`, declarations, builtin calls, strings, comments, numbers, and selector calls such as `fmt.Println`. Raw string literals in backticks span lines and recognize no escapes.
 
 ```go
 package main
@@ -89,7 +91,7 @@ func main() {
 
 **class**: `language-swift` `language-kotlin` `language-kt` `language-kts` `language-dart` `language-lua`
 
-Recognizes common keywords, function declarations, type/class declarations, builtin calls, strings, comments, numbers, punctuation, and member access. Lua uses its own rule set for `--` comments and `function ... end` blocks.
+Recognizes common keywords, function declarations, type/class declarations, builtin calls, strings, comments, numbers, punctuation, and member access. Triple-quoted literals — Swift multiline strings, Kotlin raw strings, Dart's `'''` form — are matched whole. Lua uses its own rule set for `--` comments and `function ... end` blocks.
 
 ```swift
 import Foundation
@@ -124,6 +126,8 @@ end
 **class**: `language-java` `language-c` `language-cpp` `language-csharp` `language-cs` `language-rust` `language-rs` `language-ruby` `language-rb`
 
 Recognizes common keywords, class/type declarations, function declarations, function calls, property/member access, strings, comments, numbers, and constants. C-family grammars include preprocessor lines and annotations; Rust also recognizes macro calls such as `println!`.
+
+Multi-line and raw literals are matched whole rather than closing at the first inner quote: Java text blocks and C# raw strings (`"""`), C++ `R"tag(...)tag"`, and Rust `r#"..."#` — the last two carry a counted or named delimiter, so a quote inside the body does not end the literal. In Rust a leading apostrophe is read as a lifetime and typed as the type parameter it stands in for, not as the opening of a character literal.
 
 ```rust
 fn main() {

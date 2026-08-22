@@ -17,6 +17,7 @@
 - 内置变量：`console`, `window`, `document`, `globalThis`, `Math`, `JSON`, ...
 - 内置函数（出现在 `.fn(` 或 `fn(` 位置）：`log`, `fetch`, `parseInt`, ...
 - 模板字符串 `` `...${id}...` ``，含 `${}` 内联高亮
+- 数字字面量含分隔符(`1_000_000`)、二/八/十六进制，以及 BigInt 后缀(`10n`)
 - 正则字面量 `/pattern/flags`，上下文敏感（前面是 `=` `(` `,` `return` 等才识别）
 - `ALL_CAPS` 常量、`.property` 访问、`@decorator`
 
@@ -40,6 +41,7 @@ async function fetchUser(id: number): Promise<User> {
 - `self`, `cls`, `__name__`, `__init__`, `__file__` → `tk-var-builtin`
 - 80+ 内置函数 (`print`, `len`, `range`, `isinstance`, ...)
 - 三引号字符串、f-string / r-string / b-string 前缀
+- PEP 701 替换字段可携带定界引号(`f"{a["k"]}"`)；格式说明符里的嵌套花括号暂不支持
 - `@decorator`
 
 ```python
@@ -73,7 +75,7 @@ function render_code($code) {
 
 **class**: `language-go` `language-golang`
 
-识别 `package`、`import`、`func`、声明、内置调用、字符串、注释、数字，以及 `fmt.Println` 这类选择器调用。
+识别 `package`、`import`、`func`、声明、内置调用、字符串、注释、数字，以及 `fmt.Println` 这类选择器调用。反引号原始字符串跨行且不识别转义。
 
 ```go
 package main
@@ -89,7 +91,7 @@ func main() {
 
 **class**: `language-swift` `language-kotlin` `language-kt` `language-kts` `language-dart` `language-lua`
 
-识别常见关键字、函数声明、类型/类声明、内置调用、字符串、注释、数字、标点和成员访问。Lua 使用独立规则支持 `--` 注释和 `function ... end` 结构。
+识别常见关键字、函数声明、类型/类声明、内置调用、字符串、注释、数字、标点和成员访问。三引号字面量(Swift 多行字符串、Kotlin 原始字符串、Dart 的 `'''` 形式)整体匹配。Lua 使用独立规则支持 `--` 注释和 `function ... end` 结构。
 
 ```swift
 import Foundation
@@ -124,6 +126,8 @@ end
 **class**: `language-java` `language-c` `language-cpp` `language-csharp` `language-cs` `language-rust` `language-rs` `language-ruby` `language-rb`
 
 识别常见关键字、类/类型声明、函数声明、函数调用、属性/成员访问、字符串、注释、数字和常量。C-family 语法支持预处理行和注解；Rust 额外识别 `println!` 这类宏调用。
+
+多行与原始字面量整体匹配，不会在第一个内部引号处提前闭合：Java 文本块与 C# 原始字符串(`"""`)、C++ 的 `R"tag(...)tag"`、Rust 的 `r#"..."#` —— 后两者的分隔符带计数或命名，正文里的引号不会结束字面量。Rust 中前导撇号按生命周期识别，着色为它所占据的类型参数，而不是字符字面量的开头。
 
 ```rust
 fn main() {
