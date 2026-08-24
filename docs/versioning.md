@@ -4,7 +4,7 @@
 
 JSRay Core uses single-project versioning. Platform plugins keep their own version files in their own repositories.
 
-Current version: `0.0.1-beta.5`
+Current version: `0.0.2-beta.1`
 Current channel: `beta`
 Public beta released: yes
 
@@ -17,8 +17,24 @@ Internal test builds may be shared privately, but they should not be described a
 | Channel | Format | Meaning |
 |---|---|---|
 | Internal | `0.0.1-internal.N` | Private test builds before a public beta. |
-| Public beta | `0.0.1-beta.N` | Public beta builds announced to external users. |
-| Stable | `0.0.1` | Stable public release. |
+| Public beta | `0.0.P-beta.N` | Public beta builds announced to external users. |
+| Stable | `0.1.0` | Stable public release. |
+
+### The ladder
+
+Each beta bumps the **patch**; the counter after it exists because
+`check:versions` requires it and because `version_compare()` is what orders
+these — string order would put `0.0.10` before `0.0.2`.
+
+```
+0.0.1-beta.1 … 0.0.1-beta.5 → 0.0.2-beta.1 → 0.0.3-beta.1 → … → 0.1.0
+```
+
+The `0.0.1` line closed at beta.5. `0.1.0` is where the beta label comes off,
+and `0.0.1` is therefore never released as a stable version — the ladder walks
+past it. Integrations follow the same shape in their own repositories, and the
+ecosystem rule that ties an integration's major to Core's keeps every one of
+them on `0.x` until this reaches `0.1.0` and beyond.
 
 ## Rules
 

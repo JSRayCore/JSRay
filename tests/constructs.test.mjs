@@ -94,6 +94,28 @@ test('Rust: a lifetime is a type, and does not open a string', () => {
   token(code, 'rust', 'keyword', 'struct');
 });
 
+test('Rust: an apostrophe in a comment is not a lifetime', () => {
+  // Shipped broken in beta.5. A lifetime has no closing quote, so the rule
+  // matched any apostrophe followed by letters — and sitting ahead of the
+  // line-comment rule it cut `// don't do this` at the apostrophe and rendered
+  // the rest as code. English comments in Rust are full of these.
+  token("// don't do this\nlet x = 1;", 'rust', 'comment', "// don't do this");
+  token(
+    "/// keeping the shorter one's allocation.\nfn f() {}",
+    'rust',
+    'comment',
+    "/// keeping the shorter one's allocation."
+  );
+  token("/* it's fine */\nfn f() {}", 'rust', 'comment', "/* it's fine */");
+
+  // The rule sits behind line comments, not in front, and must still fire.
+  token("fn f<'a, 'b>(x: &'a str) {}", 'rust', 'type', "'a");
+
+  // Strings still shield a `//` from the comment rule, which is why line
+  // comments come after strings in the first place.
+  token('let u = "https://jsray.org";', 'rust', 'string', '"https://jsray.org"');
+});
+
 test('Rust: character literals still work beside lifetimes', () => {
   token("let c = 'x';", 'rust', 'string', "'x'");
   token("let n = '\\n';", 'rust', 'string', "'\\n'");
