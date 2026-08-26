@@ -61,13 +61,24 @@ Core changes flow into plugin repositories by copying or packaging `dist/` asset
 
 ## Repository Split
 
-Expected open-source repositories:
+| Repository | Ships as | Licence | State |
+|---|---|---|---|
+| `jsray` | npm `@jsray/core` | MIT | public |
+| `jsray-wp` | WordPress.org plugin | GPLv2 or later | public |
+| `jsray-terminal` | npm CLI | MIT | not published yet |
+| `jsray-vscode` | VS Code Marketplace | MIT | not published yet |
 
-- `jsray`: Core renderer and npm package.
-- `jsray-wp`: WordPress plugin.
-- `jsray-terminal`: terminal CLI.
-- `jsray-vscode`: VS Code extension.
-- Future platform repositories such as `jsray-react`, `jsray-astro`, or `jsray-mdx` if needed.
+Future platform repositories such as `jsray-react`, `jsray-astro`, or
+`jsray-mdx` if needed.
+
+**The licences differ on purpose.** Core is MIT so anything can embed it. The
+WordPress plugin is GPLv2-or-later because WordPress.org's first guideline
+accepts any GPL-compatible licence and strongly recommends WordPress's own —
+MIT qualifies, but there is nothing to gain from being the exception in a
+directory where everything else is GPL. MIT is GPL-compatible in that
+direction, so the plugin bundling an MIT Core is permitted; MIT asks that its
+notice travel along, which is what `jsray-wp/LICENSE-THIRD-PARTY` is for. Any
+integration that lands on a GPL platform should expect the same treatment.
 
 ## Website Routes
 

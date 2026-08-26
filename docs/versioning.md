@@ -32,9 +32,19 @@ these — string order would put `0.0.10` before `0.0.2`.
 
 The `0.0.1` line closed at beta.5. `0.1.0` is where the beta label comes off,
 and `0.0.1` is therefore never released as a stable version — the ladder walks
-past it. Integrations follow the same shape in their own repositories, and the
-ecosystem rule that ties an integration's major to Core's keeps every one of
-them on `0.x` until this reaches `0.1.0` and beyond.
+past it.
+
+Integrations climb the same rungs but not the same notation. Core keeps the
+counter because its betas iterate *within* a patch — `0.0.1-beta.1` through
+`0.0.1-beta.5` were five releases of one patch. An integration bumps the patch
+every time, so its counter would be `1` forever and carry nothing; `jsray-wp`
+therefore releases `0.0.1-beta → 0.0.2-beta → … → 0.1.0`. Both orders correctly
+under `version_compare()`, which is what WordPress uses to decide whether an
+update is newer.
+
+What every repository does share is the rule tying an integration's major to
+the Core it bundles, which keeps all of them on `0.x` until this reaches
+`0.1.0` and beyond.
 
 ## Rules
 

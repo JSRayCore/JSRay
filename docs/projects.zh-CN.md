@@ -61,13 +61,21 @@ Core 的变更通过拷贝或打包 `dist/` 资产流向插件仓库。插件的
 
 ## 仓库拆分
 
-预期的开源仓库：
+| 仓库 | 交付形态 | 许可 | 状态 |
+|---|---|---|---|
+| `jsray` | npm `@jsray/core` | MIT | 已公开 |
+| `jsray-wp` | WordPress.org 插件 | GPLv2 or later | 已公开 |
+| `jsray-terminal` | npm CLI | MIT | 尚未发布 |
+| `jsray-vscode` | VS Code Marketplace | MIT | 尚未发布 |
 
-- `jsray`：Core 渲染器与 npm 包。
-- `jsray-wp`：WordPress 插件。
-- `jsray-terminal`：终端 CLI。
-- `jsray-vscode`：VS Code 扩展。
-- 未来按需增加的平台仓库，例如 `jsray-react`、`jsray-astro`、`jsray-mdx`。
+未来按需增加的平台仓库，例如 `jsray-react`、`jsray-astro`、`jsray-mdx`。
+
+**许可不同是刻意的。** Core 用 MIT,好让任何东西都能嵌入它。WordPress 插件用
+GPLv2 or later,因为 WordPress.org 的第一条指南接受任何 GPL 兼容许可、并**强烈
+推荐**用 WordPress 自己那份 —— MIT 是合规的,但在一个周围全是 GPL 的目录里当例外
+换不来任何东西。MIT 往 GPL 方向是兼容的,所以插件里装 MIT 的 Core 被允许;而 MIT
+要求声明随代码分发,这正是 `jsray-wp/LICENSE-THIRD-PARTY` 的用途。将来落到 GPL
+平台上的集成,按同样方式处理。
 
 ## 网站路由
 

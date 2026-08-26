@@ -154,7 +154,7 @@ is a major-version event.
 
 ## 4. Languages
 
-35 language families, 79 language keys (with aliases). Adding one:
+35 language families, 83 language keys (with aliases). Adding one:
 
 1. Grammar in `src/jsray.js` (standalone `G.<lang>` array, or the
    `cLikeGrammar` factory for C-family syntax).
@@ -184,8 +184,10 @@ renderer.languages                 -> { [language]: grammar }
 ### jsray-wp (WordPress)
 
 - `jsray.php` registers assets, the **JSRay Code** Gutenberg block, a
-  settings page (theme mode / fallback language / asset toggles), and the
-  `[jsray]` shortcode. Six `jsray_wp_*` filters expose the platform layer.
+  settings page (palette / custom colours / theme mode / fallback language /
+  asset toggles / code-block coverage), and the `[jsray]` shortcode, which
+  renders through the same path the block does. Seven `jsray_wp_*` filters
+  expose the platform layer.
 - `assets/js/jsray-loader.js` runs on the front end: resolves each block's
   language (class → data attribute → auto-detect → fallback), normalizes
   markup, applies the theme, binds copy buttons, and re-scans DOM mutations.
@@ -231,7 +233,10 @@ renderer.languages                 -> { [language]: grammar }
 
 - `internal` → version ends `-internal.N`, `package.json` stays
   `private: true`, WordPress `Stable tag: trunk`.
-- `beta` → `-beta.N`; `stable` → plain semver.
+- `beta` → `-beta.N` in Core, `-beta` in the integrations; `stable` → plain
+  semver. Core keeps the counter because its betas iterate within a patch; an
+  integration bumps the patch every release, so its counter would always be 1.
+  Both orders correctly under `version_compare()`.
 
 **Core snapshot sync** — integrations never depend on Core at runtime; they
 vendor it. Each has `tools/sync-core.sh` (copy Core `dist/` + palettes,
@@ -278,12 +283,18 @@ live in the integration repositories:
   registry, so unlike the sibling-checkout drift check it works in CI, where no
   Core checkout exists. An unreachable registry skips rather than fails —
   not knowing is not the same as being stale.
-- `.github/workflows/sync-core.yml` polls every six hours and opens a pull
-  request when a newer Core is published: it syncs from the tarball, runs the
-  suite, and stops. It polls rather than reacting to a Core release trigger,
-  which would need a long-lived token in Core able to write to all three
-  integrations — a credential this project should not be creating to save a
-  few hours.
+- `.github/workflows/sync-core.yml` polls every six hours and, when a newer
+  Core is published, syncs from the tarball, runs the suite, pushes the branch
+  and **files an issue** carrying the compare link. It stops there: `gh pr
+  create` needs "Allow GitHub Actions to create and approve pull requests",
+  which is an organisation-wide switch, and the alternative is a stored PAT —
+  the same credential the polling design avoids. The click that remains buys
+  something back, because a pull request opened by a person runs its checks
+  and one opened with GITHUB_TOKEN never does.
+
+  It polls rather than reacting to a Core release trigger, which would need a
+  long-lived token in Core able to write to all three integrations — a
+  credential this project should not be creating to save a few hours.
 
 `tools/sync-core.sh` accepts either source: `JSRAY_CORE_DIR` for a sibling
 checkout (what a maintainer has, and what lets `sync-integrations.sh` exercise
@@ -373,9 +384,14 @@ deliberately deferred).
 
 ## 9. Known issues & roadmap
 
-- **WP**: palette selection (aurora/ember/fjord) not yet exposed in
-  settings; only theme *mode* is. PHPUnit coverage deferred.
-- **VS Code**: real-VSCode acceptance (F5 / `vsce package`) not yet run.
+- **WP**: PHPUnit coverage deferred — `tests/php/checks.php` runs 104
+  assertions inside a real WordPress instead, on both ends of the supported
+  range. Palette selection *is* exposed (`palette` and `custom_palette` in
+  Settings → JSRay), which this list claimed for a while after it shipped.
+- **VS Code**: `vsce package` not yet run. Editor acceptance is covered —
+  `npm run test:editor` boots a real VS Code through `@vscode/test-electron`
+  and runs 32 assertions against `markdown.api.render`, the preview's own
+  pipeline.
 - **Terminal**: `--bg` (painted background), pager integration, and a
   `--core <path>` override are roadmap items.
 - **User-side core pinning** (roadmap): platform-native update controls
