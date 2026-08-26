@@ -125,7 +125,7 @@ renderer.languages                 -> { [language]: grammar }
 
 ### jsray-wp(WordPress)
 
-- `jsray.php` 注册资源、**JSRay Code** Gutenberg 区块、设置页(主题模式/回退语言/资源开关)与 `[jsray]` 短代码;6 个 `jsray_wp_*` filter 开放平台层。
+- `jsray.php` 注册资源、**JSRay Code** Gutenberg 区块、设置页(调色板/自定义配色/主题模式/回退语言/资源开关/代码块覆盖范围)与 `[jsray]` 短代码 —— 短代码与区块走同一条渲染路径;7 个 `jsray_wp_*` filter 开放平台层。
 - `assets/js/jsray-loader.js` 前端运行:解析每个区块的语言(class → data 属性 → 自动检测 → 回退)、规整标记、应用主题、绑定复制按钮、监听 DOM 变化重扫。适配器可经 `window.JSRayWP.renderer` 替换引擎。
 - 打包:`npm run build` → `build/jsray-wp-<version>.zip`(以 `check:versions` 为闸门)。
 
@@ -148,7 +148,9 @@ renderer.languages                 -> { [language]: grammar }
 **版本管理** —— 每个仓库携带 `version.json`(`version`、`channel: internal|beta|stable`、`publicBetaReleased`、`bundledCore`)。频道不变量(由各仓库的 `tools/check-versions.mjs` 强制):
 
 - `internal` → 版本以 `-internal.N` 结尾,`package.json` 保持 `private: true`,WordPress `Stable tag: trunk`。
-- `beta` → `-beta.N`;`stable` → 纯 semver。
+- `beta` → Core 用 `-beta.N`,各集成用 `-beta`;`stable` → 纯 semver。Core 保留
+  计数器是因为它的 beta 在同一补丁号内迭代;集成每发一版就换补丁号,计数器永远是 1。
+  两种记法在 `version_compare()` 下排序都正确。
 
 **Core 快照同步** —— 集成不在运行时依赖 Core,而是捆绑快照。各集成有 `tools/sync-core.sh`(拷贝 Core `dist/` 与调色板、更新 `bundledCore.version`、重新生成派生资产)与**机会性漂移校验**:Core 以 sibling 存在时(`../jsray` 或 `JSRAY_CORE_DIR`),`check:versions` 逐字节比对捆绑内容;Core 不在场(CI 单独克隆)则静默跳过。日常漂移是**提示性的**(警告,exit 0)——只有严格模式(`JSRAY_STRICT_DRIFT=1` 或 `--strict`)才硬失败,打包门禁和 `sync-integrations` 使用严格模式。集成对 Core 更新是**批量吸收**,如同 Electron 应用批量吸收 Chromium:插件发版时捡起当时最新的 Core,从不逐版追赶。
 
@@ -170,10 +172,14 @@ renderer.languages                 -> { [language]: grammar }
   npm 上的 `beta` 标签时**直接失败**。它查的是 registry,所以不像那个基于兄弟目录
   的漂移校验 —— 后者在 CI 里(没有 Core 检出)会静默跳过。registry 不可达时跳过而
   非失败:不知道和落后不是一回事。
-- `.github/workflows/sync-core.yml` 每六小时轮询一次,发现更新的 Core 就开一个 PR:
-  从 tarball 同步、跑测试,然后停下。用轮询而不是由 Core 发布触发,是因为触发需要在
-  Core 里存一个能写三个集成仓库的长期令牌 —— 为了省下几个小时,这个项目不该创建
-  这样一份凭据。
+- `.github/workflows/sync-core.yml` 每六小时轮询一次,发现更新的 Core 就从 tarball
+  同步、跑测试、推分支,并**开一个 Issue**,里面放好一键开 PR 的对比链接。到此为止:
+  `gh pr create` 需要"允许 Actions 创建并批准 PR",而那是**组织级**开关,另一条路是
+  存 PAT —— 正是轮询设计要避开的那份凭据。剩下的那次点击还换回一样东西:人开的 PR
+  会跑全部检查,用 GITHUB_TOKEN 开的永远不会。
+
+  用轮询而不是由 Core 发布触发,是因为触发需要在 Core 里存一个能写三个集成仓库的
+  长期令牌 —— 为了省下几个小时,这个项目不该创建这样一份凭据。
 
 `tools/sync-core.sh` 两种来源都接受:`JSRAY_CORE_DIR` 指向兄弟检出(维护者本地
 就是这样,也是 `sync-integrations.sh` 能验证未发布 Core 的原因),或
@@ -238,8 +244,12 @@ CI:每个仓库都有 GitHub Actions(Node 18/20/22 矩阵;Core 另验 `dist/` �
 
 ## 9. 已知问题与路线图
 
-- **WP**:设置页尚未开放调色板选择(aurora/ember/fjord),目前只有明暗模式;PHPUnit 覆盖延后。
-- **VS Code**:真机验收(F5 / `vsce package`)未做。
+- **WP**:PHPUnit 覆盖延后 —— 改由 `tests/php/checks.php` 在真实 WordPress 里跑
+  104 条断言,支持范围的上下限各跑一遍。调色板选择**已经开放**(设置 → JSRay 里的
+  `palette` 与 `custom_palette`),这份清单在它上线之后还挂了一段时间。
+- **VS Code**:`vsce package` 未做。编辑器验收已覆盖 —— `npm run test:editor` 用
+  `@vscode/test-electron` 启一个真实 VS Code,对 `markdown.api.render`(预览自己的
+  管线)跑 32 条断言。
 - **终端**:`--bg`(整底色绘制)、分页器集成与 `--core <path>` 覆盖在路线图上。
 - **用户侧 Core 锁定**(路线图):平台原生的更新控制已允许用户拒绝某班列车(WP 手动更新、VS Code 按扩展关自动更新 + 装历史版本、npm 版本锁定)。插件内的"Core 更新策略"(跟随/锁定/自定义文件)对 WP 与终端可行,对 VS Code 预览不可行(贡献点路径静态)。硬规则:锁定状态下遇到安全级 Core 更新必须显式警告——安全修复不允许被静默锁死。
 - **Core**:minify 刻意缺席(零构建);公开 beta 时再议。

@@ -5,6 +5,14 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [0.0.2-beta.1] — 2026-08-24
+
+One regression, shipped in beta.5 and found by rendering a real page.
+
+### Fixed
+
+- **An apostrophe in a Rust comment is no longer read as a lifetime.** A lifetime has no closing quote, so the rule beta.5 introduced matched any apostrophe followed by letters — and it sat ahead of the line-comment rule, which cannot defend against something in front of it. `// don't do this` was cut at the apostrophe: the comment ended there, `'t` became a type, and the rest of the line rendered as code. English comments in Rust are full of `don't`, `it's` and `one's`, so this was not an edge case. The rule now sits behind the line-comment rule, where it still fires everywhere a lifetime can occur — a lifetime never appears inside a comment or a string, and both are consumed by then. Character literals stay where they were, because they are strings and line comments deliberately come after strings so a `//` inside `"https://…"` stays a URL.
+
 ## [0.0.1-beta.5] — 2026-08-21
 
 The first release since beta.1 that changes what the highlighter puts on screen. Eight literal forms were tokenised by rules that either fired and claimed the wrong span, or did not exist — the failure mode a test asking "did the string rule match?" cannot see, because in most of these cases it did.

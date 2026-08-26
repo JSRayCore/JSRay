@@ -43,7 +43,7 @@ one.
 
 | Version | Security updates |
 |---|---|
-| 0.0.1-beta.5 | ✅ Current public beta |
+| 0.0.2-beta.1 | ✅ Current public beta |
 | Earlier betas | ❌ Superseded — upgrade to the current beta |
 | 0.0.1-internal.∗ | ❌ Superseded by the public beta |
 | Stable | Not yet released |
