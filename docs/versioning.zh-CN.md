@@ -49,13 +49,23 @@ JSRay Core 是独立的 JavaScript 原生代码渲染内核。平台插件(包�
 4. Core 的内部构建保持 `package.json` 中的 `"private": true`，防止误发到 npm。
 5. 提交版本变更前先运行 `npm run check:versions`。
 
-## 晋级
+## 切换通道
 
-当 Core 准备好首个公开测试版时：
+写成规则而不是某一次转换的步骤 —— 这一节原本描述的是「如何走到**首个**公开测试版」，
+而那件事发生在 2026-07-17，读起来却像项目还在等它。
 
-1. 把 `version.json` 的版本改为 `0.0.1-beta.1`、`channel` 改为 `beta`。
-2. 只有确实要发 npm 时，才移除 `package.json` 里的 `"private": true`。
-3. 把 README 徽章与 changelog 的状态从内部测试更新为公开测试版。
+无论往哪个通道走，`version.json` 都是源头：在那里改 `version` 和 `channel`，
+然后跑 `npm run check:versions`，其余由它强制。
+
+| 切换到 | 版本号必须 | 另外 |
+|---|---|---|
+| `internal` | 以 `-internal.N` 结尾 | package.json 保持 `"private": true` |
+| `beta` | 以 `-beta.N` 结尾 | 确实要发 npm 时才移除 `"private": true`；置 `publicBetaReleased: true` |
+| `stable` | 不带任何预发布后缀 | —— |
+
+两个 README 的徽章和阶段措辞都必须与新通道一致，`check:versions` **双向**校验 ——
+光是"该出现的词在"不够，"不该出现的词还在"同样算失败。新版本还必须有对应的
+`CHANGELOG.md` 小节。
 
 ## npm 发布
 
@@ -76,10 +86,12 @@ JSRay Core 是独立的 JavaScript 原生代码渲染内核。平台插件(包�
 
 **但 1.0 之前根本没有稳定版可挤,** 而 `latest` 必须指向某个版本 —— 无论有没有
 人做决定，npm 都会给它挑一个。此时"不去动它"并不等于"没有默认版本"，而是默认
-版本被冻结在最早占住这个标签的那个预发布版上。beta.2 到 beta.3 之间发生的正是
-这件事:`npm install @jsray/core`（README 里教的那条命令）一直装的是
-0.0.1-beta.2 —— 比当前发布版更旧，而且带着一个拒绝服务漏洞 —— 修复只在
-`@beta` 里。
+版本被冻结在最早占住这个标签的那个预发布版上。
+
+beta.2 到 beta.3 之间发生的正是这件事:`npm install @jsray/core`（README 里教的
+那条命令）一直装的是 0.0.1-beta.2 —— 比当前发布版更旧，而且带着一个拒绝服务漏洞
+—— 修复只在 `@beta` 里。**这是一段已成往事的记录**，写在这里是因为它就是下面那条
+规则的由来；里面的版本号属于当时的事故，不是过期信息。
 
 所以：只要 registry 上还不存在稳定版，`tools/release.sh` 就会把 `latest` 一并
 指向最新的预发布版。它查的是 registry 而不是某个开关，因此 1.0 发布的那一刻

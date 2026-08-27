@@ -54,13 +54,25 @@ the Core it bundles, which keeps all of them on `0.x` until this reaches
 4. Internal Core builds keep `package.json` marked as `"private": true` to prevent accidental npm publishing.
 5. Before committing version changes, run `npm run check:versions`.
 
-## Promotion
+## Changing channel
 
-When Core is ready for its first public beta:
+Written as a rule rather than as the steps for one transition — this section
+used to describe getting to the *first* public beta, an event that happened on
+2026-07-17, and read as though the project were still waiting for it.
 
-1. Change `version.json` to `0.0.1-beta.1` and `channel` to `beta`.
-2. Remove `"private": true` from `package.json` only when npm publishing is intended.
-3. Update the README badges and changelog status from internal test to public beta.
+Whatever the move, `version.json` is the source: change `version` and `channel`
+there, then run `npm run check:versions`, which enforces the rest.
+
+| Moving to | Version must | Also |
+|---|---|---|
+| `internal` | end `-internal.N` | keep `"private": true` in package.json |
+| `beta` | end `-beta.N` | drop `"private": true` if npm publishing is intended; set `publicBetaReleased: true` |
+| `stable` | carry no prerelease suffix | — |
+
+The README badges and the phase wording in both READMEs have to match the new
+channel, and `check:versions` fails on a mismatch in either direction — it is
+not enough for the right phrase to be present if the wrong one is still there
+beside it. A `CHANGELOG.md` section for the new version is required too.
 
 ## npm Publishing
 
@@ -85,7 +97,8 @@ stable release as the default install.
 point somewhere — npm picks it whether or not anyone decides. Leaving it
 alone does not mean "no default"; it means the default stays frozen on
 whichever prerelease claimed it first. That is exactly what happened
-between beta.2 and beta.3: `npm install @jsray/core`, the command in the
+between beta.2 and beta.3 (a past incident, kept here because it is the reason
+the rule exists): `npm install @jsray/core`, the command in the
 README, kept installing 0.0.1-beta.2 — older than the current release and
 carrying a denial of service — while `@beta` had the fix.
 
