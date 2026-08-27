@@ -23,7 +23,7 @@ test('portable output depends on nothing outside itself', () => {
   assert.doesNotMatch(html, /<style/, 'rich-text editors strip style blocks');
   assert.doesNotMatch(html, /<link/);
   assert.doesNotMatch(html, /var\(--/, 'a custom property needs a declaration somewhere else');
-  assert.match(html, /^<pre style="/);
+  assert.match(html, /^<pre data-jsray-portable style="/);
   assert.match(html, /<\/pre>$/);
 });
 
@@ -108,4 +108,37 @@ test('the size premium over the class form stays modest', () => {
     `portable output is ${(portable / classed).toFixed(1)}× the class form; ` +
       'something is repeating itself'
   );
+});
+
+// JSRay's own auto-init scans for `pre > code`, and a portable block is exactly
+// that shape. Left alone it re-renders the code in class form, which on a page
+// with no jsray.css means the block loses every colour — the one failure this
+// whole module exists to prevent. It bit the demo page first: the preview was
+// quietly showing the class rendering, not the portable one.
+test('the portable block marks itself so the auto-scan skips it', () => {
+  const html = JSRay.renderPortable('const a = 1;', 'js', DARK);
+  assert.match(html, /<pre data-jsray-portable /, 'without the marker highlightAll() overwrites it');
+});
+
+test('highlightAll leaves a portable block alone but still does its job', () => {
+  const rendered = [];
+
+  // A `code` element as highlightAll actually touches one. `inPortable` decides
+  // what closest() reports, which is the only thing the guard consults.
+  const codeEl = (inPortable) => ({
+    className: '',
+    textContent: 'const a = 1;',
+    classList: { add() {} },
+    dataset: {},
+    closest: (sel) => (inPortable && sel === '[data-jsray-portable]' ? {} : null),
+    set innerHTML(v) { rendered.push(v); },
+  });
+
+  const portable = codeEl(true);
+  const ordinary = codeEl(false);
+  JSRay.highlightAll({ querySelectorAll: () => [portable, ordinary] });
+
+  assert.equal(rendered.length, 1, 'exactly one of the two blocks should be rewritten');
+  assert.match(rendered[0], /class="tk-/, 'the ordinary block still gets the class rendering');
+  assert.equal(portable.dataset.jsrayLang, undefined, 'the portable block was not touched');
 });

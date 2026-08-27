@@ -1606,8 +1606,13 @@
       'white-space:pre',
     ].join(';');
 
-    return '<pre style="' + shell + '"><code style="font:inherit;color:inherit;' +
-      'background:none;padding:0">' + body + '</code></pre>';
+    // The marker keeps highlightAll() off this block. Without it the auto-scan
+    // matches `pre > code`, re-renders the code in class form, and the inline
+    // colours this whole function exists to produce are gone. A destination
+    // that strips data attributes falls back to being re-highlighted in that
+    // site's own palette, which is wrong but still legible.
+    return '<pre data-jsray-portable style="' + shell + '"><code style="font:inherit;' +
+      'color:inherit;background:none;padding:0">' + body + '</code></pre>';
   }
 
   // ============================================================
@@ -1704,6 +1709,10 @@
     highlightAll(root) {
       const scope = root || document;
       scope.querySelectorAll('code[class*="language-"], code[class*="lang-"], pre > code').forEach((el) => {
+        // A block from renderPortable() already carries its colours inline.
+        // Re-rendering it would swap them for classes and strip the styling
+        // on any page that has no jsray.css — which is most of them.
+        if (el.closest && el.closest('[data-jsray-portable]')) return;
         this.highlightElement(el);
       });
     },
