@@ -76,6 +76,34 @@ declare namespace JSRay {
    */
   function render(stream: TokenStream | string): string;
 
+  /** Options for the portable renderer's container. */
+  interface PortableOptions {
+    /** CSS padding for the `<pre>`. Default `16px 18px`. */
+    padding?: string;
+    /** CSS border-radius for the `<pre>`. Default `8px`. */
+    radius?: string;
+    /** CSS font shorthand. Default a 13px monospace stack. */
+    font?: string;
+  }
+
+  /**
+   * Render to HTML that carries its own styling and needs no stylesheet.
+   *
+   * For code that leaves the page it was rendered on — pasted into a CMS, a
+   * newsletter, somebody else's blog, where `class="tk-keyword"` resolves to
+   * nothing. Editors that strip `<style>` blocks and class attributes generally
+   * keep inline `style`, which is what this relies on.
+   *
+   * The theme is fixed when the string is produced, so a pasted block cannot
+   * follow the destination's light/dark setting.
+   */
+  function renderPortable(
+    code: string,
+    lang: string,
+    theme: ThemeBlock,
+    options?: PortableOptions
+  ): string;
+
   /**
    * Render a code string into HTML with `<span class="tk-xxx">` wrappers.
    * Unknown `lang` falls back to HTML-escaped source.

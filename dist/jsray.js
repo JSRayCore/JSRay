@@ -1494,25 +1494,120 @@
     set('--jr-gutter-fg', themeBlock.gutter);
     set('--jr-line-hl',   themeBlock.lineHighlight);
     const tokens = themeBlock.tokens || {};
-    // Fallback chain: a missing refined key resolves through its base
-    // (function.declaration → function), so palettes that predate a newly
-    // added key keep working — the vocabulary can grow in minor versions.
-    const resolveColor = (key) => {
-      let k = key;
-      while (k) {
-        const tok = tokens[k];
-        if (tok && tok.color) return tok.color;
-        const dot = k.lastIndexOf('.');
-        k = dot === -1 ? '' : k.slice(0, dot);
-      }
-      return null;
-    };
+    // The fallback chain lives in resolveToken, shared with renderPortable.
+    // Two renderers resolving the same palette by two implementations is how
+    // they drift apart, and this one had the only copy of it.
     for (const key in THEME_ALIAS) {
-      const color = resolveColor(key);
-      if (color) {
-        set('--jr-' + THEME_ALIAS[key], color);
-      }
+      const tok = resolveToken(tokens, key);
+      if (tok) set('--jr-' + THEME_ALIAS[key], tok.color);
     }
+  }
+
+  /**
+   * Resolve a palette key to a token's style, following the fallback chain.
+   *
+   * Shared by every renderer: a refined key that a palette predates resolves
+   * through its base (`function.declaration` → `function`), which is what lets
+   * the vocabulary grow in a minor version without breaking older palettes.
+   *
+   * @param {object} tokens Palette `tokens` block.
+   * @param {string} key Palette key.
+   * @returns {{color: string, fontStyle?: string}|null}
+   */
+  function resolveToken(tokens, key) {
+    let k = key;
+    while (k) {
+      const tok = tokens[k];
+      if (tok && tok.color) return tok;
+      const dot = k.lastIndexOf('.');
+      k = dot === -1 ? '' : k.slice(0, dot);
+    }
+    return null;
+  }
+
+  // Class suffix back to palette key — THEME_ALIAS read the other way. The
+  // token stream carries `tk-fn-decl`; a palette is keyed `function.declaration`.
+  const KEY_BY_SUFFIX = {};
+  for (const key in THEME_ALIAS) KEY_BY_SUFFIX[THEME_ALIAS[key]] = key;
+
+  /**
+   * Render to HTML that carries its own styling and needs no stylesheet.
+   *
+   * The third consumer of the token stream, beside `render()` and the terminal's
+   * ANSI writer. It exists for the case a plugin cannot reach: code pasted into
+   * somebody else's site, where `class="tk-keyword"` means nothing because
+   * jsray.css was never loaded, and where a rich-text editor strips `<style>`
+   * blocks and class attributes but keeps inline `style`.
+   *
+   * Costs about 40% more bytes than the class-based output and roughly twelve
+   * times the source — a twenty-line snippet lands near 7 KB, which is nothing
+   * to paste and a lot to serve, so this is for copying, not for pages that
+   * could link a stylesheet instead.
+   *
+   * Two limits are inherent rather than temporary. A pasted block cannot follow
+   * the host's light/dark setting, because inline styles are fixed at the moment
+   * of copying — the caller picks a theme block and that is the one that
+   * travels. And anything the destination's sanitizer strips is gone; inline
+   * `style` on `span` and `pre` survives the widest range, which is why nothing
+   * here depends on a class, a stylesheet, or a wrapper more elaborate than
+   * `<pre><code>`.
+   *
+   * @param {string} code Source text.
+   * @param {string} language Language id or alias.
+   * @param {object} themeBlock A palette's `dark` or `light` block.
+   * @param {{padding?: string, radius?: string, font?: string}} [options]
+   * @returns {string} A self-contained `<pre>` element.
+   */
+  function renderPortable(code, language, themeBlock, options) {
+    const theme = themeBlock || {};
+    const tokens = theme.tokens || {};
+    const opts = options || {};
+
+    const paint = (node) => {
+      if (typeof node === 'string') return escapeHtml(node);
+      if (Array.isArray(node)) return node.map(paint).join('');
+
+      const inner = typeof node.content === 'string'
+        ? escapeHtml(node.content)
+        : paint(node.content);
+
+      const key = KEY_BY_SUFFIX[String(node.type).replace(/^tk-/, '')];
+      const tok = key ? resolveToken(tokens, key) : null;
+
+      // An unstyled token is emitted as bare text rather than an empty span:
+      // the wrapper would carry no colour and only cost bytes.
+      if (!tok) return inner;
+
+      let style = 'color:' + tok.color;
+      const fontStyle = tok.fontStyle || '';
+      if (fontStyle.indexOf('bold') !== -1) style += ';font-weight:700';
+      if (fontStyle.indexOf('italic') !== -1) style += ';font-style:italic';
+
+      return '<span style="' + style + '">' + inner + '</span>';
+    };
+
+    // The internal tokenize takes a grammar, not a language name — resolving it
+    // here is what the public tokenize() does, and an unknown language has to
+    // degrade to plain text rather than throw.
+    const grammar = G[normalizeLanguage(language)];
+    const body = paint(grammar ? tokenize(code, grammar) : [String(code)]);
+
+    // The container is inline-styled for the same reason the tokens are: the
+    // background and the monospace stack have to survive the trip too, or the
+    // block arrives as coloured text in the host's body font.
+    const shell = [
+      'background:' + (theme.background || '#1C1C1E'),
+      'color:' + (theme.foreground || '#E1E4E8'),
+      'padding:' + (opts.padding || '16px 18px'),
+      'border-radius:' + (opts.radius || '8px'),
+      'overflow-x:auto',
+      'font:' + (opts.font || '13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'),
+      // Explicit, because a host that sets `pre-wrap` would reflow the code.
+      'white-space:pre',
+    ].join(';');
+
+    return '<pre style="' + shell + '"><code style="font:inherit;color:inherit;' +
+      'background:none;padding:0">' + body + '</code></pre>';
   }
 
   // ============================================================
@@ -1561,6 +1656,28 @@
      */
     render(stream) {
       return render(stream);
+    },
+
+    /**
+     * Render to HTML that carries its own styling and needs no stylesheet.
+     *
+     * For code that leaves this page: pasted into a rich-text editor, a CMS,
+     * a newsletter — anywhere `class="tk-keyword"` resolves to nothing because
+     * jsray.css was never loaded. Editors that strip `<style>` blocks and class
+     * attributes generally keep inline `style`, which is the whole basis of it.
+     *
+     * `themeBlock` is a palette's `dark` or `light` block, e.g.
+     * `tokens.json`'s `themes.dark`. It has to be chosen at call time: inline
+     * styles are fixed once written, so a pasted block cannot follow the
+     * destination's light/dark setting the way a plugin-rendered one does.
+     *
+     * @param {string} code
+     * @param {string} lang
+     * @param {object} themeBlock
+     * @param {{padding?: string, radius?: string, font?: string}} [options]
+     */
+    renderPortable(code, lang, themeBlock, options) {
+      return renderPortable(code, lang, themeBlock, options);
     },
 
     /** Highlight a code string into an HTML string (tokenize + render) */

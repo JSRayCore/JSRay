@@ -23,6 +23,7 @@ mkdir -p _site
 # Demo becomes the site root.
 cp demo/index.html   _site/index.html
 cp demo/studio.html  _site/studio.html
+cp demo/paste.html   _site/paste.html
 cp demo/footer.css   _site/footer.css
 cp _headers          _site/_headers
 cp -R demo/studio    _site/studio
@@ -31,6 +32,10 @@ cp -R dist           _site/dist
 mkdir -p _site/assets
 cp -R assets/brand   _site/assets/brand
 cp tokens.json       _site/tokens.json
+# The paste page fetches every palette at runtime rather than embedding the
+# colours, for the same reason the Studio does: a second copy of tokens.json is
+# a second thing to drift. Ship the sources it reads.
+cp -R themes         _site/themes
 
 # The demo lives one level deeper in the repo (demo/index.html) and reaches
 # assets with ../ prefixes; at the site root those must become same-level paths.
@@ -42,14 +47,19 @@ cp tokens.json       _site/tokens.json
 # demo cost a visitor an extra round trip. The files keep their names — only
 # the links between them change, and only in the deployed copy, so opening
 # demo/index.html straight from the repo still works.
-for f in _site/index.html _site/studio.html; do
+for f in _site/index.html _site/studio.html _site/paste.html; do
   sed -e 's|\.\./dist/|dist/|g' \
       -e 's|\.\./assets/|assets/|g' \
       -e 's|href="studio\.html"|href="studio"|g' \
-      -e 's|href="index\.html"|href="/"|g' "$f" > "$f.tmp"
+      -e 's|href="index\.html"|href="/"|g' \
+      -e 's|\.\./tokens\.json|tokens.json|g' \
+      -e 's|\.\./themes/|themes/|g' "$f" > "$f.tmp"
   mv "$f.tmp" "$f"
 done
-# studio.js fetches ../tokens.json from studio/, which resolves to the root — correct as-is.
+# studio.js fetches ../tokens.json from studio/, which resolves to the root —
+# correct as-is, and it is a separate file so the rewrite above never sees it.
+# paste.html does its fetching inline and sits at the root, where ../ would
+# climb above the site; hence the two extra rules.
 
 # --- versioned copies -------------------------------------------------------
 # /dist/ moves on every release, which is wrong for a site nobody is watching.

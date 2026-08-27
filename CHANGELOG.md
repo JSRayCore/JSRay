@@ -5,6 +5,18 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [Unreleased]
+
+### Added
+
+- **`renderPortable()` — HTML that carries its own styling.** A third consumer of the token stream, beside `render()` and the terminal's ANSI writer, for the case a plugin cannot reach: code pasted into somebody else's site, where `class="tk-keyword"` resolves to nothing because `jsray.css` was never loaded. Every colour is written inline and the container carries its own background, padding and monospace stack, so the block depends on nothing outside the string it returns. Rich-text editors that strip `<style>` blocks and class attributes generally keep inline `style`, which is the whole basis of it — though what any particular destination allows is worth testing before relying on it. Two limits come with the approach rather than the implementation: the theme is fixed when the string is produced, so a pasted block cannot follow the destination's light/dark setting; and it costs about 40% more than the class-based form, roughly twelve times the source, which is nothing to paste and a lot to serve.
+- **A page to use it**, at `/paste.html`. Pick a language, palette and mode, and copy. The copy carries both `text/html` and `text/plain`, so pasting into a code editor gives the original source rather than a screenful of markup.
+
+### Changed
+
+- **The palette fallback chain has one implementation.** `applyThemeToRoot` carried the only copy of it; `resolveToken` is now shared with the portable renderer, because two renderers resolving the same palette by two implementations is how they come to disagree about a palette that predates a token key.
+- The site build ships `themes/` and the new page. The paste page fetches every palette at runtime for the same reason the Studio does — a second copy of the colours is a second thing to drift.
+
 ## [0.0.2-beta.1] — 2026-08-24
 
 One regression, shipped in beta.5 and found by rendering a real page.

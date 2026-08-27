@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JSRay · Copy a rendered block</title>
+<link rel="icon" type="image/svg+xml" href="../assets/brand/jsray-mark-dark.svg">
+<link rel="stylesheet" href="../dist/themes/default.css?v=1">
+<link rel="stylesheet" href="../dist/jsray.css?v=1">
+<link rel="stylesheet" href="footer.css?v=1">
+<style>
+  :root { --ui-bg:#141416; --ui-panel:#1C1C1E; --ui-line:#2C2C2E; --ui-fg:#E1E4E8; --ui-dim:#6B7681; --ui-accent:#D08BFC; }
+  * { box-sizing: border-box; }
+  body { background: var(--ui-bg); color: var(--ui-fg); margin: 0; padding: 0 24px 80px;
+         font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header.top { padding: 56px 0 28px; border-bottom: 1px solid var(--ui-line); }
+  header.top h1 { font: 700 28px/1.2 ui-monospace, "SF Mono", Menlo, monospace; margin: 0 0 10px; letter-spacing: -0.02em; }
+  header.top p { color: var(--ui-dim); margin: 0; max-width: 62ch; }
+  header.top nav { margin-top: 14px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+  header.top nav a { color: var(--ui-accent); text-decoration: none; margin-right: 18px; }
+  header.top nav a:hover, header.top nav a:focus-visible { text-decoration: underline; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end; margin: 28px 0 18px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field > span { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
+                  text-transform: uppercase; color: var(--ui-dim); }
+  select, button, textarea { font: inherit; color: inherit; background: var(--ui-panel);
+                             border: 1px solid var(--ui-line); border-radius: 6px; padding: 8px 10px; }
+  select { min-width: 190px; }
+  button { cursor: pointer; font-weight: 600; }
+  button:hover { border-color: var(--ui-accent); }
+  button:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--ui-accent); outline-offset: 2px; }
+  button.primary { background: var(--ui-accent); border-color: var(--ui-accent); color: #17151b; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .pane > h2 { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
+               text-transform: uppercase; color: var(--ui-dim); margin: 0 0 8px; }
+  textarea { width: 100%; min-height: 300px; resize: vertical; tab-size: 2;
+             font: 13px/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre; }
+
+  /* 预览容器刻意不设背景：可移植块自带背景，看到什么就是粘贴后的样子 */
+  #preview { min-height: 300px; border: 1px dashed var(--ui-line); border-radius: 8px; padding: 14px; overflow: auto; }
+  #preview > pre { margin: 0; }
+
+  .out { margin-top: 22px; }
+  .out textarea { min-height: 130px; white-space: pre-wrap; color: var(--ui-dim); font-size: 12px; }
+  .status { font: 13px ui-monospace, Menlo, monospace; color: var(--ui-dim); margin-left: 4px; }
+  .note { border-left: 2px solid var(--ui-accent); padding-left: 16px; margin: 26px 0 0;
+          color: var(--ui-dim); font-size: 14px; max-width: 70ch; }
+  .note b { color: var(--ui-fg); }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="wrap">
+  <header class="top">
+    <h1>Copy a rendered block</h1>
+    <p>Render code here, copy it, paste it anywhere. The result carries its own colours inline, so it needs no stylesheet at the destination — which is what makes it work on a site you cannot install a plugin on.</p>
+    <nav>
+      <a href="index.html">← Demo</a>
+      <a href="studio.html">Theme Studio</a>
+    </nav>
+  </header>
+
+  <div class="controls">
+    <label class="field"><span>Language</span><select id="lang"></select></label>
+    <label class="field"><span>Palette</span><select id="palette"></select></label>
+    <label class="field"><span>Mode</span>
+      <select id="mode"><option value="dark">Dark</option><option value="light">Light</option></select>
+    </label>
+    <button id="copy" class="primary" type="button">Copy rendered block</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div class="grid">
+    <section class="pane">
+      <h2>Your code</h2>
+      <textarea id="code" spellcheck="false"></textarea>
+    </section>
+    <section class="pane">
+      <h2>What the destination will show</h2>
+      <div id="preview"></div>
+    </section>
+  </div>
+
+  <section class="out">
+    <h2 style="font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--ui-dim);margin:0 0 8px">
+      The HTML it copies <span id="size" style="text-transform:none;letter-spacing:0"></span>
+    </h2>
+    <textarea id="html" readonly spellcheck="false"></textarea>
+  </section>
+
+  <p class="note">
+    <b>The copy carries two formats.</b> Rich-text editors take the rendered HTML; a code editor
+    takes the original source, so pasting into one does not give you a screenful of markup.
+    <br><br>
+    <b>The theme is fixed when you copy.</b> Inline styles cannot follow the destination's
+    light/dark setting — pick the mode that suits where it is going.
+    <br><br>
+    <b>Some editors strip more than others.</b> Most keep inline <code>style</code>, which is what
+    this relies on; a few normalise everything away. Paste into a draft before you trust it.
+  </p>
+</div>
+
+<script src="../dist/jsray.js?v=1"></script>
+<script>
+(function () {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const els = { code: $('code'), lang: $('lang'), palette: $('palette'), mode: $('mode'),
+                preview: $('preview'), html: $('html'), size: $('size'), status: $('status') };
+
+  const SAMPLE = `export function merge(left, right) {
+  const out = [];
+
+  // Take from whichever side is smaller.
+  while (left.length && right.length) {
+    out.push(left[0] <= right[0] ? left.shift() : right.shift());
+  }
+
+  return out.concat(left, right);
+}`;
+
+  // 只列常用语言，全量 83 个键在下拉里没法读
+  const LANGS = ['javascript', 'typescript', 'jsx', 'python', 'rust', 'go', 'java', 'c', 'cpp',
+                 'csharp', 'php', 'ruby', 'swift', 'kotlin', 'sql', 'shell', 'html', 'css',
+                 'json', 'yaml', 'markdown', 'diff'];
+  const PALETTES = ['default', 'aurora', 'ember', 'fjord'];
+
+  const palettes = {};
+  let ready = false;
+
+  for (const id of LANGS) {
+    els.lang.add(new Option(id, id));
+  }
+  els.lang.value = 'javascript';
+
+  for (const id of PALETTES) {
+    els.palette.add(new Option(id, id));
+  }
+
+  els.code.value = SAMPLE;
+
+  function themeBlock() {
+    const p = palettes[els.palette.value];
+    return p && p.themes ? p.themes[els.mode.value] : null;
+  }
+
+  function update() {
+    if (!ready) return;
+    const theme = themeBlock();
+    if (!theme) return;
+
+    const html = JSRay.renderPortable(els.code.value, els.lang.value, theme);
+
+    els.preview.innerHTML = html;
+    els.html.value = html;
+
+    const bytes = new Blob([html]).size;
+    const src = new Blob([els.code.value]).size || 1;
+    els.size.textContent = '— ' + bytes.toLocaleString() + ' bytes, ' +
+      (bytes / src).toFixed(1) + '× the source';
+  }
+
+  async function copy() {
+    const html = els.html.value;
+    const text = els.code.value;
+
+    try {
+      // 两种格式一起写：富文本编辑器取 HTML，代码编辑器取原始源码。
+      // 只写 HTML 的话，往 VS Code 里一粘就是满屏标签。
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+        }),
+      ]);
+      say('Copied — paste it somewhere');
+    } catch (e) {
+      // clipboard.write() 需要安全上下文和真实用户手势，Safari 还对时机挑剔。
+      //
+      // 退路不能是「选中那个 HTML 文本框让用户按 ⌘C」——那样剪贴板里只有
+      // 源码文本，粘到富文本编辑器就是一屏 <pre style=...> 字面量，正好丢掉
+      // 这个功能的全部意义。改用离屏 contenteditable：选中已渲染的节点再
+      // execCommand('copy')，浏览器会把 text/html 放进剪贴板，这也是富文本
+      // 复制在 Clipboard API 之前唯一的做法。
+      if (fallbackCopyRich(html)) {
+        say('Copied — paste it somewhere');
+      } else {
+        els.html.focus();
+        els.html.select();
+        say('Copy failed — select the HTML below and copy it by hand');
+      }
+    }
+  }
+
+  function fallbackCopyRich(html) {
+    const holder = document.createElement('div');
+    holder.contentEditable = 'true';
+    holder.innerHTML = html;
+    // 移出视口而不是 display:none —— 隐藏的节点选不中。
+    holder.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(holder);
+
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(holder);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      const ok = document.execCommand('copy');
+      sel.removeAllRanges();
+      return ok;
+    } catch (err) {
+      return false;
+    } finally {
+      document.body.removeChild(holder);
+    }
+  }
+
+  function say(msg) {
+    els.status.textContent = msg;
+    window.setTimeout(function () { els.status.textContent = ''; }, 2600);
+  }
+
+  els.code.addEventListener('input', update);
+  els.lang.addEventListener('change', update);
+  els.palette.addEventListener('change', update);
+  els.mode.addEventListener('change', update);
+  $('copy').addEventListener('click', copy);
+
+  // 调色板是运行时取的，和 Theme Studio 用同一批源文件——
+  // 页面里再抄一份颜色，就是又开一处会和 tokens.json 分叉的地方。
+  Promise.all(PALETTES.map(function (id) {
+    const url = id === 'default' ? '../tokens.json' : '../themes/' + id + '.json';
+    return fetch(url).then(function (r) { return r.json(); })
+      .then(function (json) { palettes[id] = json; })
+      .catch(function () { palettes[id] = null; });
+  })).then(function () {
+    ready = true;
+    update();
+  });
+})();
+</script>
+</body>
+</html>
