@@ -80,12 +80,19 @@ body[data-theme="light"] .site-footer { border-top: 1px solid #E4E4E7; }
   opacity: 0.4;
   cursor: default;
 }
-.site-footer__soon .tag {
+.site-footer .tag {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-left: 6px;
   opacity: 0.75;
+}
+
+/* A shipped integration is a link, so it must not inherit the dimming above —
+   the tag says which stage it is at rather than that it is missing. */
+.site-footer .tag--beta {
+  color: var(--jr-fn-decl, #5DD8B0);
+  opacity: 1;
 }
 
 .site-footer__base {

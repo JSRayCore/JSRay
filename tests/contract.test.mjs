@@ -363,13 +363,29 @@ test('site: build-site.sh publishes every asset the pages reference', () => {
   }
 });
 
-test('site: the footer does not link to integrations that do not exist yet', () => {
+test('site: the footer links the integrations that exist and only names the rest', () => {
   // docs/projects.md: no route is published before the product behind it
-  // exists. The three integration repositories are not on GitHub yet, so a
-  // link to one is a 404 in the footer of the project's own home page.
+  // exists, so a link to an unpublished repository is a 404 in the footer of
+  // the project's own home page. The reverse is a smaller but real failure —
+  // jsray-wp went public and the footer went on calling it "soon", telling
+  // every visitor the opposite of what shipped.
+  //
+  // Both lists move as integrations ship. Moving a name from one to the other
+  // is the deliberate act that publishing it should be.
+  const PUBLIC = ['jsray-wp'];
+  const UNPUBLISHED = ['jsray-vscode', 'jsray-terminal'];
+
   for (const page of ['demo/index.html', 'demo/studio.html']) {
     const footer = read(page).match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0];
-    for (const repo of ['jsray-wp', 'jsray-vscode', 'jsray-terminal']) {
+
+    for (const repo of PUBLIC) {
+      assert.match(footer, new RegExp(`href="[^"]*${repo}"`),
+        `${page} footer names ${repo} without linking it, though it is published`);
+      assert.doesNotMatch(footer, new RegExp(`site-footer__soon[^<]*<[^>]*>[^<]*${repo}`),
+        `${page} footer still marks ${repo} as unshipped`);
+    }
+
+    for (const repo of UNPUBLISHED) {
       assert.doesNotMatch(footer, new RegExp(`href="[^"]*${repo}`),
         `${page} footer links to ${repo}, which has no public repository yet`);
       assert.ok(footer.includes(repo), `${page} footer should still name ${repo}`);
