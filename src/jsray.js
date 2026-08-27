@@ -1555,13 +1555,23 @@
    * @param {string} code Source text.
    * @param {string} language Language id or alias.
    * @param {object} themeBlock A palette's `dark` or `light` block.
-   * @param {{padding?: string, radius?: string, font?: string}} [options]
+   * The container's own declarations always carry `!important`, because that
+   * is the only weight that survives a host stylesheet doing the same. Set
+   * `important` to extend it to the token colours as well, for a destination
+   * whose CSS reaches into spans.
+   *
+   * @param {{padding?: string, radius?: string, font?: string, important?: boolean}} [options]
    * @returns {string} A self-contained `<pre>` element.
    */
   function renderPortable(code, language, themeBlock, options) {
     const theme = themeBlock || {};
     const tokens = theme.tokens || {};
     const opts = options || {};
+
+    // Off by default: it costs ~11 bytes per token and only matters against a
+    // host that sets `!important` on spans themselves, which is rare — the
+    // container already defends the things whose loss actually breaks the block.
+    const bang = opts.important ? '!important' : '';
 
     const paint = (node) => {
       if (typeof node === 'string') return escapeHtml(node);
@@ -1578,10 +1588,10 @@
       // the wrapper would carry no colour and only cost bytes.
       if (!tok) return inner;
 
-      let style = 'color:' + tok.color;
+      let style = 'color:' + tok.color + bang;
       const fontStyle = tok.fontStyle || '';
-      if (fontStyle.indexOf('bold') !== -1) style += ';font-weight:700';
-      if (fontStyle.indexOf('italic') !== -1) style += ';font-style:italic';
+      if (fontStyle.indexOf('bold') !== -1) style += ';font-weight:700' + bang;
+      if (fontStyle.indexOf('italic') !== -1) style += ';font-style:italic' + bang;
 
       return '<span style="' + style + '">' + inner + '</span>';
     };
@@ -1595,6 +1605,13 @@
     // The container is inline-styled for the same reason the tokens are: the
     // background and the monospace stack have to survive the trip too, or the
     // block arrives as coloured text in the host's body font.
+    //
+    // These carry !important unconditionally, which is the one thing that wins
+    // against a host stylesheet. Inline styles beat everything an author writes
+    // at normal weight, but an author's !important beats inline — and themes
+    // really do ship `pre { white-space: pre-wrap !important }` to stop code
+    // scrolling on phones. That single rule reflows the block and destroys the
+    // alignment, so the container defends itself for the ~80 bytes it costs.
     const shell = [
       'background:' + (theme.background || '#1C1C1E'),
       'color:' + (theme.foreground || '#E1E4E8'),
@@ -1604,7 +1621,7 @@
       'font:' + (opts.font || '13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'),
       // Explicit, because a host that sets `pre-wrap` would reflow the code.
       'white-space:pre',
-    ].join(';');
+    ].map((d) => d + '!important').join(';');
 
     // The marker keeps highlightAll() off this block. Without it the auto-scan
     // matches `pre > code`, re-renders the code in class form, and the inline

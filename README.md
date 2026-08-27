@@ -197,6 +197,14 @@ properties and no class. Editors that strip `<style>` blocks and class
 attributes generally keep inline `style`, which is the whole basis of it — but
 what any particular destination allows is worth testing before relying on it.
 
+Inline styles beat anything the destination writes at normal weight, but they
+lose to its `!important` — and themes do ship
+`pre { white-space: pre-wrap !important }` to stop code scrolling on phones,
+which reflows the block and destroys its alignment. The container's own
+declarations are marked `!important` for that reason. Token colours are not,
+because a host reaching into spans is rare and the marker costs about a quarter
+more bytes; pass `{ important: true }` if the colours arrive flattened.
+
 Two limits come with the approach rather than the implementation. The theme is
 fixed when the string is produced, so a pasted block cannot follow the
 destination's light/dark setting. And it costs roughly 40% more than the

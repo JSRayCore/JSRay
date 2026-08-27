@@ -71,6 +71,12 @@
     <label class="field"><span>Mode</span>
       <select id="mode"><option value="dark">Dark</option><option value="light">Light</option></select>
     </label>
+    <label class="field"><span>Host CSS</span>
+      <select id="important">
+        <option value="">Normal destination</option>
+        <option value="1">Destination overrides spans</option>
+      </select>
+    </label>
     <button id="copy" class="primary" type="button">Copy rendered block</button>
     <span class="status" id="status"></span>
   </div>
@@ -102,6 +108,13 @@
     <br><br>
     <b>Some editors strip more than others.</b> Most keep inline <code>style</code>, which is what
     this relies on; a few normalise everything away. Paste into a draft before you trust it.
+    <br><br>
+    <b>Host CSS.</b> Inline styles beat anything the destination writes at normal weight, but lose
+    to its <code>!important</code> — and themes do ship
+    <code>pre { white-space: pre-wrap !important }</code> to stop code scrolling on phones, which
+    reflows the block. The container defends itself against that already. Switch to
+    <i>Destination overrides spans</i> only if the colours arrive flattened; it costs about a
+    quarter more bytes.
   </p>
 </div>
 
@@ -112,7 +125,8 @@
 
   const $ = (id) => document.getElementById(id);
   const els = { code: $('code'), lang: $('lang'), palette: $('palette'), mode: $('mode'),
-                preview: $('preview'), html: $('html'), size: $('size'), status: $('status') };
+                important: $('important'), preview: $('preview'), html: $('html'),
+                size: $('size'), status: $('status') };
 
   const SAMPLE = `export function merge(left, right) {
   const out = [];
@@ -155,7 +169,8 @@
     const theme = themeBlock();
     if (!theme) return;
 
-    const html = JSRay.renderPortable(els.code.value, els.lang.value, theme);
+    const html = JSRay.renderPortable(els.code.value, els.lang.value, theme,
+      { important: !!els.important.value });
 
     els.preview.innerHTML = html;
     els.html.value = html;
@@ -249,6 +264,7 @@
   els.lang.addEventListener('change', update);
   els.palette.addEventListener('change', update);
   els.mode.addEventListener('change', update);
+  els.important.addEventListener('change', update);
   $('copy').addEventListener('click', copy);
 
   // 调色板是运行时取的，和 Theme Studio 用同一批源文件——

@@ -84,6 +84,15 @@ declare namespace JSRay {
     radius?: string;
     /** CSS font shorthand. Default a 13px monospace stack. */
     font?: string;
+    /**
+     * Mark the token colours `!important` too. The container's own
+     * declarations always are — inline styles beat a host stylesheet at
+     * normal weight but lose to its `!important`, and themes really do ship
+     * `pre { white-space: pre-wrap !important }`. Set this only for a
+     * destination whose CSS reaches into spans; it costs ~11 bytes per token
+     * (about 24% of the block). Default `false`.
+     */
+    important?: boolean;
   }
 
   /**
@@ -96,6 +105,10 @@ declare namespace JSRay {
    *
    * The theme is fixed when the string is produced, so a pasted block cannot
    * follow the destination's light/dark setting.
+   *
+   * The container's declarations carry `!important`, which is what survives a
+   * host stylesheet using the same weight; see `PortableOptions.important` for
+   * extending that to the tokens.
    */
   function renderPortable(
     code: string,

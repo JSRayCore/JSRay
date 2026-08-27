@@ -142,3 +142,36 @@ test('highlightAll leaves a portable block alone but still does its job', () => 
   assert.match(rendered[0], /class="tk-/, 'the ordinary block still gets the class rendering');
   assert.equal(portable.dataset.jsrayLang, undefined, 'the portable block was not touched');
 });
+
+// Inline styles beat everything a host writes at normal weight, but an author's
+// !important beats inline — and `pre { white-space: pre-wrap !important }` is a
+// real thing themes ship to stop code scrolling on phones. It reflows the block
+// and destroys the alignment, so the container has to outrank it.
+test('the container outranks a host stylesheet that uses !important', () => {
+  const html = JSRay.renderPortable('const a = 1;', 'js', DARK);
+  const shell = html.slice(0, html.indexOf('><code'));
+
+  for (const prop of ['background', 'color', 'font', 'white-space', 'overflow-x']) {
+    assert.match(
+      shell,
+      new RegExp(`${prop}:[^;"]*!important`),
+      `${prop} loses to a host rule that marks it important`
+    );
+  }
+});
+
+test('token colours take the same weight only when asked', () => {
+  const code = 'const a = 1;';
+  const normal = JSRay.renderPortable(code, 'js', DARK);
+  const hardened = JSRay.renderPortable(code, 'js', DARK, { important: true });
+
+  const spanOf = (html) => html.slice(html.indexOf('<span'), html.indexOf('</span>'));
+  assert.doesNotMatch(spanOf(normal), /!important/, 'the default should not pay for it per token');
+  assert.match(spanOf(hardened), /color:[^;"]*!important/);
+
+  // Worth knowing what the option costs before reaching for it.
+  assert.ok(
+    hardened.length > normal.length && hardened.length < normal.length * 1.5,
+    `hardening every token changed the size by ${(hardened.length / normal.length).toFixed(2)}×`
+  );
+});
