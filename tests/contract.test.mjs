@@ -363,6 +363,27 @@ test('site: build-site.sh publishes every asset the pages reference', () => {
   }
 });
 
+test('site: every page-to-page link is rewritten to the path the host serves', () => {
+  // Cloudflare serves these pages extensionless and 307s the .html form, so a
+  // link the build forgets to rewrite costs every visitor a redirect. That is
+  // the whole reason the rewrite exists — and it still shipped with paste.html
+  // missing, because the rule was written per-page instead of per-link.
+  const build = read('tools/build-site.sh');
+  const pages = ['demo/index.html', 'demo/studio.html', 'demo/paste.html'];
+
+  for (const page of pages) {
+    for (const m of read(page).matchAll(/href="(?!\.\.\/|https?:|#)([\w-]+)\.html"/g)) {
+      const target = m[1];
+      assert.match(
+        build,
+        new RegExp(`href="${target}\\\\?\\.html"\\|href="`),
+        `${page} links to ${target}.html and build-site.sh never rewrites it — ` +
+          'the deployed page will send visitors through a redirect'
+      );
+    }
+  }
+});
+
 test('site: the footer links the integrations that exist and only names the rest', () => {
   // docs/projects.md: no route is published before the product behind it
   // exists, so a link to an unpublished repository is a 404 in the footer of
