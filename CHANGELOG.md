@@ -5,6 +5,24 @@ versioning follows [SemVer](https://semver.org/).
 
 > This repository tracks JSRay Core versions only. Platform plugins such as WordPress maintain their own versions and changelogs in separate repositories.
 
+## [Unreleased]
+
+### Added
+
+- **`renderPortable()` — HTML that carries its own styling.** A third consumer of the token stream, beside `render()` and the terminal's ANSI writer, for the case a plugin cannot reach: code pasted into somebody else's site, where `class="tk-keyword"` resolves to nothing because `jsray.css` was never loaded. Every colour is written inline and the container carries its own background, padding and monospace stack, so the block depends on nothing outside the string it returns. Rich-text editors that strip `<style>` blocks and class attributes generally keep inline `style`, which is the whole basis of it — though what any particular destination allows is worth testing before relying on it. Two limits come with the approach rather than the implementation: the theme is fixed when the string is produced, so a pasted block cannot follow the destination's light/dark setting; and it costs about 40% more than the class-based form, roughly twelve times the source, which is nothing to paste and a lot to serve.
+- **A page to use it**, at `/paste.html`. Pick a language, palette and mode, and copy. The copy carries both `text/html` and `text/plain`, so pasting into a code editor gives the original source rather than a screenful of markup.
+
+### Fixed
+
+- **A portable block now outranks the host stylesheet.** Inline styles beat anything a destination writes at normal weight, but an author's `!important` beats inline — and themes ship `pre { white-space: pre-wrap !important }` to stop code scrolling on phones, which reflows the block and destroys its alignment. The container's own declarations carry `!important` for the 70 bytes it costs. Token colours do not by default; `renderPortable(…, { important: true })` extends it to them, for about a quarter more bytes, and is worth reaching for only when a destination's CSS reaches into spans.
+- **The clipboard fallback writes the string, not the browser's idea of it.** It used to select an offscreen `contenteditable` and let `execCommand` serialise it — but a selection is serialised from *computed* styles, so 2612 bytes of renderer output arrived as 6934 with 57 copies of a host declaration baked into the spans. It looked right, which is why nobody would have reported it. Intercepting the copy event and calling `setData` puts the exact string on the clipboard.
+- **`highlightAll()` no longer overwrites a portable block.** The auto-scan matches `pre > code`, which is exactly the shape `renderPortable()` produces, so a portable block sharing a page with JSRay was re-rendered in class form — losing every inline colour on any page without `jsray.css`, which is most of the pages this feature exists for. The block now marks itself `data-jsray-portable` and the scan skips it. The failure hid well: on the paste page the class rendering picked up the site's own stylesheet and looked plausible, and because the scan runs once at `DOMContentLoaded`, editing the code afterwards repainted it correctly. A destination that strips data attributes still falls back to being re-highlighted in that site's palette — wrong, but legible.
+
+### Changed
+
+- **The palette fallback chain has one implementation.** `applyThemeToRoot` carried the only copy of it; `resolveToken` is now shared with the portable renderer, because two renderers resolving the same palette by two implementations is how they come to disagree about a palette that predates a token key.
+- The site build ships `themes/` and the new page. The paste page fetches every palette at runtime for the same reason the Studio does — a second copy of the colours is a second thing to drift.
+
 ## [0.0.2-beta.1] — 2026-08-24
 
 One regression, shipped in beta.5 and found by rendering a real page.

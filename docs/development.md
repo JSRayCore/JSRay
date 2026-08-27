@@ -402,6 +402,17 @@ deliberately deferred).
   contribution paths). Hard rule: a locked core must surface an explicit
   warning when a security-grade Core update ships — security fixes are
   never silently pinnable.
+- **jsray-vscode / jsray-terminal**: not published, and deliberately behind
+  while their features settle. Before either one goes public it needs what
+  `jsray-wp` gained on 2026-08-26/27, because all three drift the same way:
+  `tools/sync-core-version.mjs` deriving the README Core badge instead of
+  leaving it to whoever runs the sync; `check:versions` asserting the badges
+  and the phase wording *in both directions* — the wrong phrase sitting beside
+  the right one is what let "Internal test build · no public beta yet" survive
+  the whole public beta; and the plugin version ladder (`0.0.1-beta →
+  0.0.2-beta`, no counter) rather than Core's. Both still carry Core
+  `0.0.1-beta.5` and READMEs pointing at `0.0.1-beta.1`.
+
 - **Core**: minification is deliberately absent (zero-build); revisit at
   public beta.
 - **Literal forms with no rule** (found while auditing for beta.5, deferred

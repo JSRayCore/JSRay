@@ -51,6 +51,19 @@ if (channel === 'internal') {
   includes('README.md', 'Public beta');
   includes('README.zh-CN.md', '公开测试版');
 }
+// The demo footers hardcode the version so a visitor without JS still sees a
+// true one; script then corrects it from the loaded engine. That means a stale
+// hardcoded value is invisible in a browser and only wrong where nobody looks —
+// it sat three releases behind until someone read the page source.
+for (const page of ['demo/index.html', 'demo/studio.html']) {
+  const footer = read(page).match(/<code data-jsray-version>([^<]*)<\/code>/);
+  expect(footer, `${page} has no data-jsray-version footer to check`);
+  expect(
+    !footer || footer[1] === version,
+    `${page} footer says ${footer && footer[1]}, not ${version}`
+  );
+}
+
 includes('CHANGELOG.md', `## [${version}]`);
 includes('docs/versioning.md', `Current version: \`${version}\``);
 includes('docs/versioning.zh-CN.md', `当前版本:\`${version}\``);

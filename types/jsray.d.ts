@@ -76,6 +76,47 @@ declare namespace JSRay {
    */
   function render(stream: TokenStream | string): string;
 
+  /** Options for the portable renderer's container. */
+  interface PortableOptions {
+    /** CSS padding for the `<pre>`. Default `16px 18px`. */
+    padding?: string;
+    /** CSS border-radius for the `<pre>`. Default `8px`. */
+    radius?: string;
+    /** CSS font shorthand. Default a 13px monospace stack. */
+    font?: string;
+    /**
+     * Mark the token colours `!important` too. The container's own
+     * declarations always are — inline styles beat a host stylesheet at
+     * normal weight but lose to its `!important`, and themes really do ship
+     * `pre { white-space: pre-wrap !important }`. Set this only for a
+     * destination whose CSS reaches into spans; it costs ~11 bytes per token
+     * (about 24% of the block). Default `false`.
+     */
+    important?: boolean;
+  }
+
+  /**
+   * Render to HTML that carries its own styling and needs no stylesheet.
+   *
+   * For code that leaves the page it was rendered on — pasted into a CMS, a
+   * newsletter, somebody else's blog, where `class="tk-keyword"` resolves to
+   * nothing. Editors that strip `<style>` blocks and class attributes generally
+   * keep inline `style`, which is what this relies on.
+   *
+   * The theme is fixed when the string is produced, so a pasted block cannot
+   * follow the destination's light/dark setting.
+   *
+   * The container's declarations carry `!important`, which is what survives a
+   * host stylesheet using the same weight; see `PortableOptions.important` for
+   * extending that to the tokens.
+   */
+  function renderPortable(
+    code: string,
+    lang: string,
+    theme: ThemeBlock,
+    options?: PortableOptions
+  ): string;
+
   /**
    * Render a code string into HTML with `<span class="tk-xxx">` wrappers.
    * Unknown `lang` falls back to HTML-escaped source.

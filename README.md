@@ -177,6 +177,40 @@ JSRay.normalizeLanguage('c++');   // → 'cpp'
 JSRay.applyTheme(palette.themes.dark);
 ```
 
+#### Code that leaves this page
+
+A plugin renders code in place, following the reader's theme. That only works
+where you can install a plugin. `renderPortable()` is for everywhere else — a
+CMS, a newsletter, somebody else's blog — where `class="tk-keyword"` resolves to
+nothing because `jsray.css` was never loaded:
+
+```js
+const palette = await fetch('/tokens.json').then((r) => r.json());
+
+JSRay.renderPortable('const x = 42;', 'js', palette.themes.dark);
+// <pre style="background:#1C1C1E;…"><span style="color:#D08BFC;font-weight:700">const</span>…
+```
+
+Every colour is written inline and the container carries its own background,
+padding and monospace stack, so the block needs no stylesheet, no custom
+properties and no class. Editors that strip `<style>` blocks and class
+attributes generally keep inline `style`, which is the whole basis of it — but
+what any particular destination allows is worth testing before relying on it.
+
+Inline styles beat anything the destination writes at normal weight, but they
+lose to its `!important` — and themes do ship
+`pre { white-space: pre-wrap !important }` to stop code scrolling on phones,
+which reflows the block and destroys its alignment. The container's own
+declarations are marked `!important` for that reason. Token colours are not,
+because a host reaching into spans is rare and the marker costs about a quarter
+more bytes; pass `{ important: true }` if the colours arrive flattened.
+
+Two limits come with the approach rather than the implementation. The theme is
+fixed when the string is produced, so a pasted block cannot follow the
+destination's light/dark setting. And it costs roughly 40% more than the
+class-based form — about twelve times the source — which is nothing to paste
+and a lot to serve, so use `highlight()` on pages that can link a stylesheet.
+
 #### Rendering somewhere other than HTML
 
 `highlight()` is `tokenize()` followed by `render()`. Call them separately and

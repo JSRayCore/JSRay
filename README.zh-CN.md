@@ -174,6 +174,35 @@ JSRay.normalizeLanguage('c++');   // → 'cpp'
 JSRay.applyTheme(palette.themes.dark);
 ```
 
+#### 代码要离开这个页面时
+
+插件在原地渲染代码,跟随读者的主题 —— 但那只在你装得上插件的地方成立。
+`renderPortable()` 是给其余所有地方的:CMS、邮件通讯、别人的博客 —— 那里
+`class="tk-keyword"` 什么也解析不到,因为 `jsray.css` 从来没被加载过。
+
+```js
+const palette = await fetch('/tokens.json').then((r) => r.json());
+
+JSRay.renderPortable('const x = 42;', 'js', palette.themes.dark);
+// <pre style="background:#1C1C1E;…"><span style="color:#D08BFC;font-weight:700">const</span>…
+```
+
+每个颜色都写成内联样式,容器自带背景、内边距和等宽字体栈,所以这个块**不需要
+任何样式表、自定义属性或 class**。会剥掉 `<style>` 块和 class 属性的编辑器,
+通常保留内联 `style` —— 这正是它成立的全部依据。但**具体某个目的地允许什么,
+用之前值得先实测**。
+
+内联样式能压过目的地写的任何普通优先级声明,但**压不过它的 `!important`** ——
+而主题里确实会有 `pre { white-space: pre-wrap !important }` 这种规则(为了不让
+代码在手机上横向滚动),它会让块重新换行、毁掉对齐。所以容器自己的声明都带上了
+`!important`。token 颜色默认不带:目的地把手伸进 span 的情况很少见,而这个标记
+要多花约四分之一的体积 —— 如果发现颜色被压平了,传 `{ important: true }`。
+
+有两个限制来自这个思路本身,而不是实现。主题在生成字符串时就定死了,所以粘贴过去
+的块**无法跟随目的地的明暗设置**。它比 class 形式多约 40% 的体积(约为源码的
+十二倍)—— 粘贴时不算什么,当页面资源就很多,所以能链样式表的页面请用
+`highlight()`。
+
 #### 渲染成 HTML 以外的形式
 
 `highlight()` 就是 `tokenize()` 加 `render()`。把两步拆开，中间那步就归你 ——
