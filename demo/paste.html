@@ -188,7 +188,7 @@
       // 这个功能的全部意义。改用离屏 contenteditable：选中已渲染的节点再
       // execCommand('copy')，浏览器会把 text/html 放进剪贴板，这也是富文本
       // 复制在 Clipboard API 之前唯一的做法。
-      if (fallbackCopyRich(html)) {
+      if (fallbackCopyRich(html, text)) {
         say('Copied — paste it somewhere');
       } else {
         els.html.focus();
@@ -198,13 +198,29 @@
     }
   }
 
-  function fallbackCopyRich(html) {
+  function fallbackCopyRich(html, text) {
+    // 关键在于「不让浏览器替我们序列化」。早先这里是把 html 塞进离屏
+    // contenteditable、选中、execCommand——能用，但浏览器复制选区时是按
+    // **计算样式**重新序列化的：实测输出从 2612 字节涨到 6934 字节，并且把
+    // 宿主页面的声明（当时是 57 处 app-region）烤进了每一个 span。粘出去还是
+    // 对的，可那已经不是 renderPortable() 产出的东西了。
+    //
+    // 改成拦截 copy 事件直接 setData：写进剪贴板的就是我们这一个字符串，
+    // 逐字节和主路径 clipboard.write() 一致。离屏节点只剩一个用途——给
+    // execCommand 一个非空选区，否则它不干活。
     const holder = document.createElement('div');
-    holder.contentEditable = 'true';
-    holder.innerHTML = html;
-    // 移出视口而不是 display:none —— 隐藏的节点选不中。
+    holder.textContent = ' ';
     holder.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
     document.body.appendChild(holder);
+
+    let wrote = false;
+    const onCopy = (e) => {
+      e.clipboardData.setData('text/html', html);
+      e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      wrote = true;
+    };
+    document.addEventListener('copy', onCopy, true);
 
     try {
       const range = document.createRange();
@@ -214,10 +230,12 @@
       sel.addRange(range);
       const ok = document.execCommand('copy');
       sel.removeAllRanges();
-      return ok;
+      // execCommand 可能报成功却没走到我们的处理器，那时剪贴板里是个空格。
+      return ok && wrote;
     } catch (err) {
       return false;
     } finally {
+      document.removeEventListener('copy', onCopy, true);
       document.body.removeChild(holder);
     }
   }
