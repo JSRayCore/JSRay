@@ -51,6 +51,7 @@ for f in _site/index.html _site/studio.html _site/paste.html; do
   sed -e 's|\.\./dist/|dist/|g' \
       -e 's|\.\./assets/|assets/|g' \
       -e 's|href="studio\.html"|href="studio"|g' \
+      -e 's|href="paste\.html"|href="paste"|g' \
       -e 's|href="index\.html"|href="/"|g' \
       -e 's|\.\./tokens\.json|tokens.json|g' \
       -e 's|\.\./themes/|themes/|g' "$f" > "$f.tmp"
