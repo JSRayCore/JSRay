@@ -25,12 +25,19 @@
     font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
     opacity: 0.5; margin-bottom: 10px;
   }
-  h1 { margin: 0 0 8px; font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+  /* Fixed at 28px this headline ate 21% of an iPhone screen and looked
+     undersized on an iPad; clamp lets it shrink and grow with the viewport
+     and stops at both ends. */
+  h1 { margin: 0 0 8px; font-size: clamp(21px, 4.2vw, 32px);
+       font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
   header p { margin: 0; opacity: 0.6; font-size: 13.5px; }
 
   .toggle {
     display: inline-flex; gap: 2px; margin-top: 22px;
     padding: 3px; border-radius: 9px;
+    /* Four palette buttons do not fit a 320px screen once they are wide enough
+       to tap, and a nowrap flex row would push the page sideways instead. */
+    flex-wrap: wrap;
   }
   body[data-theme="dark"]  .toggle { background: #18181B; box-shadow: inset 0 0 0 1px #27272A; }
   body[data-theme="light"] .toggle { background: #F4F4F5; box-shadow: inset 0 0 0 1px #E4E4E7; }
@@ -62,6 +69,59 @@
     opacity: 0.7;
   }
   pre[class*="language-"] { border-radius: 0; }
+
+  /* A code block is wider than a phone, and a grid item defaults to
+     min-width:auto — it will not shrink below its content, and pushes the page
+     sideways instead. Nothing here overflowed yet; both sibling pages did,
+     from exactly this. */
+  main > * { min-width: 0; }
+
+  /* 32px of padding each side is 16% of a 390px phone. */
+  @media (max-width: 640px) {
+    .wrap { padding: 36px 18px 64px; }
+    header { margin-bottom: 26px; }
+    .sample .label { padding: 10px 14px; }
+    .toggle { margin-top: 16px; }
+  }
+
+  /* The finger needs 44px — the size Apple and the WCAG target-size rule agree
+     on. Keying on the pointer rather than the width leaves the desktop
+     proportions untouched and still fixes the iPad, which is 768px wide and so
+     missed every width query while every control on it was 35px tall. */
+  @media (pointer: coarse) {
+    .toggle button { padding: 12px 18px; min-height: 44px; }
+    /* Once the row wraps, 2px between rows puts two 44px buttons 46px apart —
+       closer than the 48px a thumb covers, so the row below steals the tap.
+       The column gap stays tight; only the row gap opens up. */
+    .toggle { row-gap: 6px; }
+  }
+
+  /* Side by side on one line these two can take a hit-area overlay, which
+     leaves the dashed underline tight to the words. */
+  @media (pointer: coarse) and (min-width: 641px) {
+    .subnav a { position: relative; }
+    .subnav a::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 48px;
+      transform: translateY(-50%);
+    }
+  }
+
+  /* Narrow enough and the second link wraps. An overlay on a wrapped inline
+     element covers the union of its line boxes, so the two hit areas landed on
+     top of each other — 37px of overlap, where tapping the first link would
+     have opened the second. Giving each a row of its own is the fix; the
+     underline moves a few pixels down and nothing else changes. */
+  @media (pointer: coarse) and (max-width: 640px) {
+    /* 20px of text + 24px of padding is a 44px target, and 6px of gap puts the
+       two centres 50px apart — clear of the 48px a thumb is assumed to cover,
+       so neither row can steal the other's tap. */
+    .subnav { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .subnav > span { display: none; }
+    .subnav a { padding: 15px 0 9px; }
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -81,7 +141,7 @@
       <button data-palette="ember">Ember</button>
       <button data-palette="fjord">Fjord</button>
     </div>
-    <p style="margin-top:18px;font-size:13px;">
+    <p class="subnav" style="margin-top:18px;font-size:13px;">
       <a href="studio.html" style="color:inherit;opacity:0.7;text-decoration:none;border-bottom:1px dashed currentColor;">
         Try the theme studio →
       </a>

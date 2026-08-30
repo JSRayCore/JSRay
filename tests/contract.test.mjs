@@ -574,3 +574,31 @@ test('docs: the contributing guide states the commit conventions it asks for', (
     assert.ok(s.length <= 60, `a commit example is ${s.length} characters: "${s}"`);
   }
 });
+
+test('site: nothing on a page can refuse to shrink below its content', () => {
+  // A grid item defaults to min-width:auto and will not go narrower than what
+  // it holds — and every page here holds code. That one default put 54px of
+  // sideways scroll on the studio and 209px on the paste page at 390px wide,
+  // which is the whole of the iPhone complaint. It is invisible on a desktop,
+  // so it needs a check rather than an eye.
+  const guards = [
+    ['demo/index.html', /main\s*>\s*\*\s*\{[^}]*min-width:\s*0/],
+    ['demo/paste.html', /\.grid\s*>\s*\*\s*\{[^}]*min-width:\s*0/],
+    ['demo/studio/studio.css', /\.studio-body\s*>\s*\*\s*\{[^}]*min-width:\s*0/],
+  ];
+
+  for (const [file, pattern] of guards) {
+    assert.match(read(file), pattern,
+      `${file} lets a grid child keep min-width:auto — a code block will push the page sideways on a phone`);
+  }
+});
+
+test('site: every page sizes its controls for a finger', () => {
+  // Width queries miss the iPad: it is 768px across and was showing 35px
+  // controls. Keying on the pointer catches the tablet and leaves the desktop
+  // proportions alone.
+  for (const file of ['demo/index.html', 'demo/paste.html', 'demo/studio/studio.css']) {
+    assert.match(read(file), /@media[^{]*\(pointer:\s*coarse\)/,
+      `${file} has no coarse-pointer rules, so its controls stay mouse-sized on a touch screen`);
+  }
+});

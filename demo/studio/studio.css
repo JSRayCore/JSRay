@@ -115,6 +115,8 @@ body {
   margin-left: auto;
   display: flex;
   gap: 8px;
+  /* Three buttons at tap size overflow a 320px screen unless they can wrap. */
+  flex-wrap: wrap;
 }
 .btn {
   background: rgba(127,127,127,0.15);
@@ -142,6 +144,12 @@ body {
   grid-template-columns: 360px 1fr;
   gap: 20px;
 }
+
+/* A grid item defaults to min-width:auto, so it refuses to shrink below the
+   intrinsic width of its content — and this one holds code. On a 390px phone
+   both columns measured 412px and the whole page scrolled sideways. */
+.studio-body > * { min-width: 0; }
+
 @media (max-width: 900px) {
   .studio-body { grid-template-columns: 1fr; }
 }
@@ -154,6 +162,18 @@ body {
   max-height: 78vh;
   overflow-y: auto;
   padding-right: 6px;
+}
+
+/* Once the two columns stack, capping the list turns it into a scroll area
+   inside a page that also scrolls — on a touch screen the inner one swallows
+   the gesture and the page appears stuck. Side by side it earns its keep;
+   stacked it only gets in the way. */
+@media (max-width: 900px) {
+  .pickers {
+    max-height: none;
+    overflow-y: visible;
+    padding-right: 0;
+  }
 }
 .picker-group {
   margin-top: 14px;
@@ -215,6 +235,7 @@ body {
 .preview { display: flex; flex-direction: column; gap: 12px; }
 .preview-tabs {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 2px;
   padding: 3px;
   background: rgba(127,127,127,0.08);
@@ -239,4 +260,48 @@ body {
 .preview-pane pre {
   margin: 0;
   min-height: 60vh;
+}
+
+/* --- Touch and small screens ---------------------------------------------- */
+
+/* 32px of padding each side costs a 390px phone 16% of its width, and the
+   picker row needs every pixel it can get before the hex field starts
+   clipping. */
+@media (max-width: 640px) {
+  .studio-header { padding: 32px 20px 20px; }
+  .studio { padding: 0 20px 72px; }
+  .picker-row {
+    grid-template-columns: 32px 1fr 76px;
+    gap: 8px;
+    padding: 7px 6px;
+  }
+  .picker-row .hex { width: 76px; padding: 6px 4px; }
+}
+
+/* Pointer:coarse is the finger, and 44px is the size Apple and the WCAG
+   target-size rule both settle on. Bumping it here rather than in the width
+   query keeps the desktop proportions exactly as they were, and still fixes a
+   large touch screen — an iPad is 768px wide and every control on it was 35px. */
+@media (pointer: coarse) {
+  .btn { padding: 12px 18px; min-height: 44px; }
+  .preview-tabs .ptab { padding: 11px 14px; min-height: 44px; }
+  .toolbar-tabs .tab { padding: 11px 18px; min-height: 44px; }
+  .toolbar-field input { min-height: 44px; }
+  /* Wrapped rows of 44px buttons need 48px between centres or the row below
+     takes the tap; the column gaps stay as they are. */
+  .preview-tabs, .toolbar-tabs, .toolbar-actions { row-gap: 6px; }
+  .picker-row { padding-top: 10px; padding-bottom: 10px; }
+  .picker-row .hex,
+  .picker-row input[type="color"] { min-height: 44px; }
+
+  /* The underline is applied on hover, so the hit area is grown with an
+     overlay instead of padding that would drag it away from the words. */
+  .studio-nav a { position: relative; display: inline-block; }
+  .studio-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 48px;
+    transform: translateY(-50%);
+  }
 }

@@ -115,3 +115,11 @@ body[data-theme="light"] .site-footer__base { border-top: 1px solid #E4E4E7; }
   .site-footer { padding: 40px 20px 36px; }
   .site-footer__base { justify-content: flex-start; }
 }
+
+/* A footer link is a 17px line of text with nothing around it, which is a
+   hard thing to hit with a thumb. Giving the list item the spacing rather
+   than the anchor keeps the underline tight to the words. */
+@media (pointer: coarse) {
+  .site-footer__col li { margin-bottom: 6px; }
+  .site-footer__col a { display: inline-block; padding: 11px 0; }
+}

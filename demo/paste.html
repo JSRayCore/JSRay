@@ -35,6 +35,10 @@
   button.primary { background: var(--ui-accent); border-color: var(--ui-accent); color: #17151b; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  /* A grid item defaults to min-width:auto and so refuses to shrink below its
+     content — and the preview holds a code block. Without this the column was
+     575px wide on a 390px phone and the whole page scrolled sideways. */
+  .grid > * { min-width: 0; }
   @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
   .pane > h2 { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
                text-transform: uppercase; color: var(--ui-dim); margin: 0 0 8px; }
@@ -51,6 +55,35 @@
   .note { border-left: 2px solid var(--ui-accent); padding-left: 16px; margin: 26px 0 0;
           color: var(--ui-dim); font-size: 14px; max-width: 70ch; }
   .note b { color: var(--ui-fg); }
+
+  /* Two 300px editors plus a preview is a long scroll on a phone, and 24px of
+     side padding is width this page cannot spare. */
+  @media (max-width: 640px) {
+    body { padding: 0 16px 56px; }
+    header.top { padding: 36px 0 20px; }
+    header.top h1 { font-size: 23px; }
+    .controls { gap: 12px 14px; margin: 20px 0 14px; }
+    select { min-width: 0; width: 100%; }
+    .field { flex: 1 1 150px; }
+    textarea { min-height: 200px; }
+    #preview { min-height: 160px; }
+  }
+
+  /* 44px is the touch target both Apple and the WCAG rule settle on; every
+     control here was smaller, on the iPad too. */
+  @media (pointer: coarse) {
+    select, button { min-height: 44px; }
+    /* The nav links underline on hover, so the hit area is grown with an
+       overlay rather than padding that would drag the underline down. */
+    header.top nav a { position: relative; }
+    header.top nav a::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 48px;
+      transform: translateY(-50%);
+    }
+  }
 </style>
 </head>
 <body data-theme="dark">
