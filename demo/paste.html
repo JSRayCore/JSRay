@@ -83,26 +83,41 @@
     button.primary:active { transform: none; }
   }
 
-  /* The two panes are one before-and-after pair, so they have to end where
-     each other ends. Left to themselves the editor stopped at its 300px
-     minimum while the preview ran on to whatever the block needed — 30px
-     lower — and the pair read as two unrelated boxes. */
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
-  .pane { display: flex; flex-direction: column; }
+  /* One instrument with two halves rather than two boxes side by side: a
+     single border around both, a hairline between them, and the labels as a
+     strip along the top of each half. Nothing to align, because there is only
+     one frame. */
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--ui-line); border-radius: 10px;
+    overflow: hidden; background: var(--ui-bg);
+  }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--ui-line); }
   .pane > textarea { flex: 1 1 auto; }
-  /* The surface hugs the block instead of stretching with the row: stretched,
-     everything the row was taller than the block landed as one gap along the
-     bottom, against 10px on the other three sides. */
-  .pane > #preview { flex: 0 0 auto; }
+  .pane > #preview { flex: 1 1 auto; }
   /* A grid item defaults to min-width:auto and so refuses to shrink below its
      content — and the preview holds a code block. Without this the column was
      575px wide on a 390px phone and the whole page scrolled sideways. */
   .grid > * { min-width: 0; }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-  .pane > h2 { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
-               text-transform: uppercase; color: var(--ui-dim); margin: 0 0 8px; }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    /* Stacked, the rule belongs above the second half rather than beside it. */
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--ui-line); }
+  }
+  .pane > h2 {
+    font: 600 10.5px/1 ui-monospace, Menlo, monospace; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ui-dim);
+    margin: 0; padding: 12px 14px;
+    border-bottom: 1px solid var(--ui-line);
+  }
   textarea { width: 100%; min-height: 300px; resize: vertical; tab-size: 2;
              font: 13px/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre; }
+  /* Inside the split the halves are the frame's own surface, so neither draws
+     an edge of its own. */
+  .pane > textarea { border: 0; border-radius: 0; background: transparent;
+                     padding: 12px 14px; resize: none; }
+  .pane > textarea:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: -2px; }
 
   /* The browser's default scrollbar is a bright slab, and on this page it
      lands across the foot of a dark code block and down the side of the HTML
@@ -124,10 +139,10 @@
   /* 预览容器刻意不设背景：可移植块自带背景，看到什么就是粘贴后的样子 */
   /* Same inset as the editor's text, so the block inside starts where the
      code opposite it starts rather than 5px further in. */
-  /* Equal on all four sides, and no minimum — a minimum is just the same gap
-     under a different name whenever the block is shorter than it. */
-  #preview { border: 1px dashed var(--ui-line); border-radius: 8px;
-             padding: 10px; overflow: auto; }
+  /* No frame of its own — the split's border is the frame. The block keeps
+     its own background, so it still reads as the object you are copying
+     rather than part of the page. */
+  #preview { padding: 12px 14px; overflow: auto; }
   #preview > pre, #preview > div { margin: 0; }
 
   .out { margin-top: 22px; }
