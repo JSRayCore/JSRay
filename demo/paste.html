@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="../dist/jsray.css?v=1">
 <link rel="stylesheet" href="footer.css?v=1">
 <style>
-  :root { --ui-bg:#141416; --ui-panel:#1C1C1E; --ui-line:#2C2C2E; --ui-fg:#E1E4E8; --ui-dim:#6B7681; --ui-accent:#D08BFC; }
+  :root { --ui-bg:#141416; --ui-panel:#1C1C1E; --ui-line:#2C2C2E; --ui-fg:#E1E4E8; --ui-dim:#6B7681; --ui-accent:#D08BFC; --ui-ok:#5DD8B0; --ui-warn:#F2B870; }
   * { box-sizing: border-box; }
   body { background: var(--ui-bg); color: var(--ui-fg); margin: 0; padding: 0 24px 80px;
          font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif; }
@@ -28,7 +28,14 @@
   .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
               gap: 16px 20px; align-items: end; margin: 28px 0 18px; }
   @media (max-width: 780px) { .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 460px) { .controls { grid-template-columns: 1fr; } }
+  @media (max-width: 460px) {
+    .controls { grid-template-columns: 1fr; }
+    /* Every control above it is full width in one column; a 200px button left
+       of all that reads as something that got left behind. */
+    .actions { flex-direction: column; align-items: stretch; }
+    .actions button { width: 100%; }
+    .status { margin-left: 0; text-align: center; }
+  }
 
   .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .field > span { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
@@ -45,26 +52,97 @@
      second row look like a leftover. */
   .actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap;
              align-items: center; gap: 12px 16px; margin-top: 2px; }
-  .actions button { height: 40px; padding: 0 18px; }
+  .actions button { height: 40px; padding: 0 20px; min-width: 200px; }
   button { cursor: pointer; font-weight: 600; }
   button:hover { border-color: var(--ui-accent); }
-  button:focus-visible, select:focus-visible, textarea:focus-visible {
+  button:focus-visible, select:focus-visible, textarea:focus-visible,
+  input[type=text]:focus-visible {
     outline: 2px solid var(--ui-accent); outline-offset: 2px; }
-  button.primary { background: var(--ui-accent); border-color: var(--ui-accent); color: #17151b; }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  button.primary {
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+    color: #17151b;
+    box-shadow: 0 1px 0 rgba(255,255,255,.22) inset, 0 1px 8px rgba(208,139,252,.18);
+    transition: filter 120ms ease, transform 90ms ease, box-shadow 120ms ease,
+                background 160ms ease, border-color 160ms ease;
+  }
+  button.primary:hover { filter: brightness(1.06); box-shadow: 0 1px 0 rgba(255,255,255,.28) inset, 0 2px 14px rgba(208,139,252,.28); }
+  /* A press has to be felt, not just assumed. */
+  button.primary:active { transform: translateY(1px); filter: brightness(.97);
+                          box-shadow: 0 1px 0 rgba(255,255,255,.15) inset; }
+
+  /* The result used to be a separate line of text two elements away, which is
+     easy to miss at the moment you are looking at the button you just pressed.
+     The button says it itself; the note beside it only adds the qualifier. */
+  button.primary.is-done   { background: var(--ui-ok);   border-color: var(--ui-ok);   color: #10221c; box-shadow: none; }
+  button.primary.is-failed { background: var(--ui-warn); border-color: var(--ui-warn); color: #2a1410; box-shadow: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    button.primary { transition: none; }
+    button.primary:active { transform: none; }
+  }
+
+  /* One instrument with two halves rather than two boxes side by side: a
+     single border around both, a hairline between them, and the labels as a
+     strip along the top of each half. Nothing to align, because there is only
+     one frame. */
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--ui-line); border-radius: 10px;
+    overflow: hidden; background: var(--ui-bg);
+  }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--ui-line); }
+  .pane > textarea { flex: 1 1 auto; }
+  .pane > #preview { flex: 1 1 auto; }
   /* A grid item defaults to min-width:auto and so refuses to shrink below its
      content — and the preview holds a code block. Without this the column was
      575px wide on a 390px phone and the whole page scrolled sideways. */
   .grid > * { min-width: 0; }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-  .pane > h2 { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
-               text-transform: uppercase; color: var(--ui-dim); margin: 0 0 8px; }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    /* Stacked, the rule belongs above the second half rather than beside it. */
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--ui-line); }
+  }
+  .pane > h2 {
+    font: 600 10.5px/1 ui-monospace, Menlo, monospace; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ui-dim);
+    margin: 0; padding: 12px 14px;
+    border-bottom: 1px solid var(--ui-line);
+  }
   textarea { width: 100%; min-height: 300px; resize: vertical; tab-size: 2;
              font: 13px/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre; }
+  /* Inside the split the halves are the frame's own surface, so neither draws
+     an edge of its own. */
+  .pane > textarea { border: 0; border-radius: 0; background: transparent;
+                     padding: 12px 14px; resize: none; }
+  .pane > textarea:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: -2px; }
+
+  /* The browser's default scrollbar is a bright slab, and on this page it
+     lands across the foot of a dark code block and down the side of the HTML
+     box. The standard properties cover Firefox and current Chrome/Safari; the
+     ::-webkit- rules cover the versions that predate them. */
+  textarea, #preview { scrollbar-width: thin; scrollbar-color: var(--ui-line) transparent; }
+  textarea::-webkit-scrollbar,
+  #preview::-webkit-scrollbar { width: 9px; height: 9px; }
+  textarea::-webkit-scrollbar-track,
+  #preview::-webkit-scrollbar-track { background: transparent; }
+  textarea::-webkit-scrollbar-thumb,
+  #preview::-webkit-scrollbar-thumb {
+    background: var(--ui-line); border-radius: 5px;
+    border: 2px solid transparent; background-clip: content-box;
+  }
+  textarea:hover::-webkit-scrollbar-thumb,
+  #preview:hover::-webkit-scrollbar-thumb { background: #3A3A3F; background-clip: content-box; }
 
   /* 预览容器刻意不设背景：可移植块自带背景，看到什么就是粘贴后的样子 */
-  #preview { min-height: 300px; border: 1px dashed var(--ui-line); border-radius: 8px; padding: 14px; overflow: auto; }
+  /* Same inset as the editor's text, so the block inside starts where the
+     code opposite it starts rather than 5px further in. */
+  /* No frame of its own — the split's border is the frame. The block keeps
+     its own background, so it still reads as the object you are copying
+     rather than part of the page. */
+  #preview { padding: 12px 14px; overflow: auto; }
   #preview > pre, #preview > div { margin: 0; }
 
   .out { margin-top: 22px; }
@@ -82,7 +160,6 @@
     header.top h1 { font-size: 23px; }
     .controls { gap: 12px 14px; margin: 20px 0 14px; }
     textarea { min-height: 200px; }
-    #preview { min-height: 160px; }
   }
 
   /* 44px is the touch target both Apple and the WCAG rule settle on; every
@@ -241,6 +318,11 @@
 
     els.preview.innerHTML = html;
     els.html.value = html;
+    // Assigning value leaves the caret at the end, and the browser scrolls
+    // there — so the box showed the middle of the markup rather than its
+    // start every time a setting changed.
+    els.html.scrollTop = 0;
+    els.html.setSelectionRange(0, 0);
 
     const bytes = new Blob([html]).size;
     const src = new Blob([els.code.value]).size || 1;
@@ -261,7 +343,7 @@
           'text/plain': new Blob([text], { type: 'text/plain' }),
         }),
       ]);
-      say('Copied — paste it somewhere');
+      report('is-done', 'Copied', 'both formats — rich text and source');
     } catch (e) {
       // clipboard.write() 需要安全上下文和真实用户手势，Safari 还对时机挑剔。
       //
@@ -271,11 +353,11 @@
       // execCommand('copy')，浏览器会把 text/html 放进剪贴板，这也是富文本
       // 复制在 Clipboard API 之前唯一的做法。
       if (fallbackCopyRich(html, text)) {
-        say('Copied — paste it somewhere');
+        report('is-done', 'Copied', 'rich text and source');
       } else {
         els.html.focus();
         els.html.select();
-        say('Copy failed — select the HTML below and copy it by hand');
+        report('is-failed', 'Copy refused', 'the browser blocked it — the HTML below is selected, copy it by hand');
       }
     }
   }
@@ -322,9 +404,26 @@
     }
   }
 
-  function say(msg) {
-    els.status.textContent = msg;
-    window.setTimeout(function () { els.status.textContent = ''; }, 2600);
+  // The button reports the outcome on itself, because that is where the eye
+  // already is; the note beside it carries only the detail worth reading —
+  // which formats went, or what to do when the browser refused.
+  const BUTTON_LABEL = 'Copy rendered block';
+  let resetTimer = 0;
+
+  function report(state, label, detail) {
+    const btn = $('copy');
+    window.clearTimeout(resetTimer);
+
+    btn.classList.remove('is-done', 'is-failed');
+    if (state) btn.classList.add(state);
+    btn.textContent = label;
+    els.status.textContent = detail || '';
+
+    resetTimer = window.setTimeout(function () {
+      btn.classList.remove('is-done', 'is-failed');
+      btn.textContent = BUTTON_LABEL;
+      els.status.textContent = '';
+    }, 2600);
   }
 
   els.code.addEventListener('input', update);

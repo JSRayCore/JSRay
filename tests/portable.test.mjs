@@ -268,3 +268,15 @@ test('a frame costs less than doubling the block', () => {
       `${frame} is ${(framed / plain).toFixed(1)}× the unframed block`);
   }
 });
+
+test('the block asks for a restrained scrollbar, in properties it can inline', () => {
+  // jsray.css gives a class-rendered block an 8px scrollbar coloured from the
+  // palette, through ::-webkit-scrollbar — a pseudo-element, which cannot be
+  // written inline. A pasted block was left with the browser's default: a
+  // bright slab across the foot of a dark rectangle. These two are real
+  // properties and say the same thing.
+  const html = JSRay.renderPortable(SAMPLE_CODE, 'js', DARK);
+  assert.match(html, /scrollbar-width:thin/);
+  assert.match(html, new RegExp(`scrollbar-color:${DARK.border} ${DARK.background}`),
+    'the scrollbar should be coloured from the palette, not left to the browser');
+});

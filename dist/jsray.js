@@ -1797,6 +1797,14 @@
       // Explicit, because a host that sets `pre-wrap` would reflow the code.
       'white-space:pre',
       'margin:0',
+      // jsray.css gives a block a restrained 8px scrollbar through
+      // ::-webkit-scrollbar, and a pseudo-element cannot be written inline —
+      // so a pasted block was left with the browser's default, a bright slab
+      // across the foot of a dark rectangle. These two are real properties and
+      // say the same thing; where they are not supported the block simply
+      // keeps the scrollbar it would have had.
+      'scrollbar-width:thin',
+      'scrollbar-color:' + edge + ' ' + bg,
     ];
 
     // An unframed block still wants an edge: on a host whose background is
