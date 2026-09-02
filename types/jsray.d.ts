@@ -85,6 +85,19 @@ declare namespace JSRay {
     /** CSS font shorthand. Default a 13px monospace stack. */
     font?: string;
     /**
+     * The window the code sits in. `header` is jsray-wp's own title bar, so a
+     * block copied from the site matches one the plugin rendered; `macos` is
+     * the three dots; `minimal` is a hairline strip. Default `none`.
+     */
+    frame?: 'none' | 'header' | 'macos' | 'minimal';
+    /** Filename or heading shown in the frame. Escaped before it is written. */
+    title?: string;
+    /**
+     * Text on the right of the frame. Defaults to the language's display name
+     * ("JavaScript", "C++"); pass an empty string to leave it off.
+     */
+    label?: string;
+    /**
      * Mark the token colours `!important` too. The container's own
      * declarations always are — inline styles beat a host stylesheet at
      * normal weight but lose to its `!important`, and themes really do ship

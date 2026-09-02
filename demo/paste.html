@@ -25,7 +25,7 @@
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field > span { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
                   text-transform: uppercase; color: var(--ui-dim); }
-  select, button, textarea { font: inherit; color: inherit; background: var(--ui-panel);
+  select, button, textarea, input[type=text] { font: inherit; color: inherit; background: var(--ui-panel);
                              border: 1px solid var(--ui-line); border-radius: 6px; padding: 8px 10px; }
   select { min-width: 190px; }
   button { cursor: pointer; font-weight: 600; }
@@ -47,7 +47,7 @@
 
   /* 预览容器刻意不设背景：可移植块自带背景，看到什么就是粘贴后的样子 */
   #preview { min-height: 300px; border: 1px dashed var(--ui-line); border-radius: 8px; padding: 14px; overflow: auto; }
-  #preview > pre { margin: 0; }
+  #preview > pre, #preview > div { margin: 0; }
 
   .out { margin-top: 22px; }
   .out textarea { min-height: 130px; white-space: pre-wrap; color: var(--ui-dim); font-size: 12px; }
@@ -63,7 +63,7 @@
     header.top { padding: 36px 0 20px; }
     header.top h1 { font-size: 23px; }
     .controls { gap: 12px 14px; margin: 20px 0 14px; }
-    select { min-width: 0; width: 100%; }
+    select, input[type=text] { min-width: 0; width: 100%; }
     .field { flex: 1 1 150px; }
     textarea { min-height: 200px; }
     #preview { min-height: 160px; }
@@ -72,7 +72,7 @@
   /* 44px is the touch target both Apple and the WCAG rule settle on; every
      control here was smaller, on the iPad too. */
   @media (pointer: coarse) {
-    select, button { min-height: 44px; }
+    select, button, input[type=text] { min-height: 44px; }
     /* The nav links underline on hover, so the hit area is grown with an
        overlay rather than padding that would drag the underline down. */
     header.top nav a { position: relative; }
@@ -103,6 +103,17 @@
     <label class="field"><span>Palette</span><select id="palette"></select></label>
     <label class="field"><span>Mode</span>
       <select id="mode"><option value="dark">Dark</option><option value="light">Light</option></select>
+    </label>
+    <label class="field"><span>Window</span>
+      <select id="frame">
+        <option value="none">No frame</option>
+        <option value="header" selected>Title bar</option>
+        <option value="macos">macOS</option>
+        <option value="minimal">Hairline</option>
+      </select>
+    </label>
+    <label class="field"><span>Title</span>
+      <input id="title" type="text" placeholder="merge.js" value="merge.js" />
     </label>
     <label class="field"><span>Host CSS</span>
       <select id="important">
@@ -158,7 +169,8 @@
 
   const $ = (id) => document.getElementById(id);
   const els = { code: $('code'), lang: $('lang'), palette: $('palette'), mode: $('mode'),
-                important: $('important'), preview: $('preview'), html: $('html'),
+                important: $('important'), frame: $('frame'), title: $('title'),
+                preview: $('preview'), html: $('html'),
                 size: $('size'), status: $('status') };
 
   const SAMPLE = `export function merge(left, right) {
@@ -202,8 +214,11 @@
     const theme = themeBlock();
     if (!theme) return;
 
-    const html = JSRay.renderPortable(els.code.value, els.lang.value, theme,
-      { important: !!els.important.value });
+    const html = JSRay.renderPortable(els.code.value, els.lang.value, theme, {
+      important: !!els.important.value,
+      frame: els.frame.value,
+      title: els.title.value,
+    });
 
     els.preview.innerHTML = html;
     els.html.value = html;
@@ -298,6 +313,8 @@
   els.palette.addEventListener('change', update);
   els.mode.addEventListener('change', update);
   els.important.addEventListener('change', update);
+  els.frame.addEventListener('change', update);
+  els.title.addEventListener('input', update);
   $('copy').addEventListener('click', copy);
 
   // 调色板是运行时取的，和 Theme Studio 用同一批源文件——

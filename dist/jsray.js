@@ -1560,9 +1560,174 @@
    * `important` to extend it to the token colours as well, for a destination
    * whose CSS reaches into spans.
    *
-   * @param {{padding?: string, radius?: string, font?: string, important?: boolean}} [options]
-   * @returns {string} A self-contained `<pre>` element.
+   * `frame` puts the code in a window: `header` is jsray-wp's own bar, so a
+   * block copied from here matches one the plugin rendered; `macos` is the
+   * three dots; `minimal` is a hairline strip. `title` and `label` fill it —
+   * `label` defaults to the language's display name.
+   *
+   * @param {{padding?: string, radius?: string, font?: string,
+   *          important?: boolean, frame?: 'none'|'header'|'macos'|'minimal',
+   *          title?: string, label?: string}} [options]
+   * @returns {string} A self-contained element: a `<pre>`, or a `<div>` around
+   *   one when a frame is asked for.
    */
+  /**
+   * Blend two colours the way `color-mix()` would, but at render time.
+   *
+   * The plugin's stylesheet derives its chrome from the palette with
+   * `color-mix(in srgb, var(--jr-bg) 88%, var(--jr-fg) 12%)`. A pasted block
+   * has neither the custom properties nor a guarantee the destination's browser
+   * supports the function, so the same arithmetic happens here and ships a
+   * plain hex. Anything that is not a hex triple is returned as-is rather than
+   * guessed at — a palette may legitimately carry `rgba()`.
+   */
+  function mixHex(base, other, percentOfBase) {
+    const parse = (hex) => {
+      const s = String(hex).trim();
+      const m = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(s);
+      if (!m) return null;
+      const h = m[1].length === 3 ? m[1].replace(/./g, (c) => c + c) : m[1];
+      return [
+        parseInt(h.slice(0, 2), 16),
+        parseInt(h.slice(2, 4), 16),
+        parseInt(h.slice(4, 6), 16),
+      ];
+    };
+
+    const a = parse(base);
+    const b = parse(other);
+    if (!a || !b) return base;
+
+    const w = Math.max(0, Math.min(1, percentOfBase / 100));
+    const channel = (i) => Math.round(a[i] * w + b[i] * (1 - w));
+    return '#' + [0, 1, 2]
+      .map((i) => channel(i).toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  /**
+   * "javascript" → "JavaScript", for the label a frame puts in its header.
+   *
+   * Two hops, because normalizeLanguage deliberately leaves some names alone:
+   * `c++` resolves through LANGUAGE_ALIASES to `cpp`, while `js` and `ts` have
+   * grammars registered under their own names so a TypeScript block stays
+   * labelled TypeScript — those need naming here directly. Anything unlisted
+   * is upper-cased, which reads correctly far more often than not (TOML, INI,
+   * GraphQL) and is never wrong enough to matter.
+   */
+  function languageLabel(lang) {
+    // What the caller said comes first: `jsx` collapses to `javascript` for
+    // grammar purposes, but someone who wrote jsx wants to see JSX.
+    const raw = String(lang || '').toLowerCase().replace(/^(?:language|lang)-/, '');
+    if (LANGUAGE_LABELS[raw]) return LANGUAGE_LABELS[raw];
+
+    const key = normalizeLanguage(lang);
+    if (!key) return '';
+    const canonical = LANGUAGE_ALIASES[key] || key;
+    return LANGUAGE_LABELS[key] || LANGUAGE_LABELS[canonical] || key.toUpperCase();
+  }
+
+  const LANGUAGE_LABELS = {
+    javascript: 'JavaScript', js: 'JavaScript',
+    typescript: 'TypeScript', ts: 'TypeScript',
+    jsx: 'JSX', tsx: 'TSX', vue: 'Vue',
+    python: 'Python', ruby: 'Ruby', rust: 'Rust', go: 'Go', java: 'Java',
+    kotlin: 'Kotlin', swift: 'Swift', dart: 'Dart', scala: 'Scala',
+    c: 'C', cpp: 'C++', csharp: 'C#', objectivec: 'Objective-C',
+    php: 'PHP', lua: 'Lua', perl: 'Perl', r: 'R',
+    elixir: 'Elixir', haskell: 'Haskell',
+    shell: 'Shell', powershell: 'PowerShell',
+    html: 'HTML', xml: 'XML', svg: 'SVG',
+    css: 'CSS', scss: 'Sass', sass: 'Sass', less: 'Less',
+    json: 'JSON', jsonc: 'JSON', yaml: 'YAML', toml: 'TOML', ini: 'INI',
+    sql: 'SQL', graphql: 'GraphQL', markdown: 'Markdown',
+    dockerfile: 'Dockerfile', makefile: 'Makefile', diff: 'Diff',
+  };
+
+  /**
+   * The window each block sits in. Every frame is a header strip above the
+   * code; the wrapper around them carries the border and the radius, so a
+   * frame only has to describe its own row.
+   *
+   * All of it is inline-styled for the same reason the code is — a pasted
+   * block has no stylesheet at the destination.
+   */
+  /* The chrome defends itself for the same reason the container does: a host
+     rule at !important weight beats an inline style, and a frame that loses
+     its background is a frame that looks broken rather than plain. The
+     `important` option stays what it was — a choice about the token colours. */
+  const IMPORTANT = '!important';
+
+  const FRAMES = {
+    /* jsray-wp's own header: bold title on the left, language on the right.
+       Matching the plugin means a block copied from the site and a block the
+       plugin renders look like the same product. The plugin's Copy button is
+       deliberately absent: nothing here can run script at the destination, and
+       a button that does nothing is worse than no button. */
+    header: (c) => {
+      const row = [
+        'display:flex', 'align-items:center', 'gap:10px', 'min-height:40px',
+        'padding:0 14px', 'background:' + c.headerBg, 'color:' + c.fg,
+        'border-bottom:1px solid ' + c.edge,
+        'font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
+      ].map((d) => d + IMPORTANT).join(';');
+
+      const title = c.title
+        ? '<span style="font-weight:700' + IMPORTANT + ';overflow:hidden' + IMPORTANT +
+          ';text-overflow:ellipsis' + IMPORTANT + ';white-space:nowrap' + IMPORTANT +
+          '">' + escapeHtml(c.title) + '</span>'
+        : '';
+
+      const label = c.label
+        ? '<span style="margin-left:auto' + IMPORTANT + ';color:' + c.muted + IMPORTANT +
+          ';font-size:11px' + IMPORTANT + ';letter-spacing:.06em' + IMPORTANT +
+          ';text-transform:uppercase' + IMPORTANT + '">' + escapeHtml(c.label) + '</span>'
+        : '';
+
+      return '<div style="' + row + '">' + title + label + '</div>';
+    },
+
+    /* Three dots and a centred caption. The dots are spans with a background
+       and a radius rather than an image, so nothing has to load at the
+       destination for the frame to read as a window. */
+    macos: (c) => {
+      const row = [
+        'display:flex', 'align-items:center', 'gap:8px', 'min-height:38px',
+        'padding:0 14px', 'background:' + c.headerBg,
+        'border-bottom:1px solid ' + c.edge,
+        'font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
+      ].map((d) => d + IMPORTANT).join(';');
+
+      const dot = (colour) => '<span style="width:11px' + IMPORTANT + ';height:11px' +
+        IMPORTANT + ';border-radius:50%' + IMPORTANT + ';display:inline-block' + IMPORTANT +
+        ';background:' + colour + IMPORTANT + '"></span>';
+
+      const caption = (c.title || c.label)
+        ? '<span style="margin:0 auto' + IMPORTANT + ';color:' + c.muted + IMPORTANT +
+          ';padding-right:45px' + IMPORTANT + ';overflow:hidden' + IMPORTANT +
+          ';text-overflow:ellipsis' + IMPORTANT + ';white-space:nowrap' + IMPORTANT +
+          '">' + escapeHtml(c.title || c.label) + '</span>'
+        : '';
+
+      return '<div style="' + row + '">' +
+        dot('#FF5F57') + dot('#FEBC2E') + dot('#28C840') + caption + '</div>';
+    },
+
+    /* A single hairline strip carrying only the language — the least chrome
+       that still reads as a deliberate window rather than a bare rectangle. */
+    minimal: (c) => {
+      const row = [
+        'display:flex', 'align-items:center', 'min-height:28px',
+        'padding:0 16px', 'background:' + c.headerBg,
+        'border-bottom:1px solid ' + c.edge, 'color:' + c.muted,
+        'font:10.5px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
+        'letter-spacing:.1em', 'text-transform:uppercase',
+      ].map((d) => d + IMPORTANT).join(';');
+
+      return '<div style="' + row + '">' + escapeHtml(c.title || c.label) + '</div>';
+    },
+  };
+
   function renderPortable(code, language, themeBlock, options) {
     const theme = themeBlock || {};
     const tokens = theme.tokens || {};
@@ -1612,24 +1777,76 @@
     // really do ship `pre { white-space: pre-wrap !important }` to stop code
     // scrolling on phones. That single rule reflows the block and destroys the
     // alignment, so the container defends itself for the ~80 bytes it costs.
+    const bg = theme.background || '#1C1C1E';
+    const fg = theme.foreground || '#E1E4E8';
+    const edge = theme.border || mixHex(bg, fg, 88);
+    const radius = opts.radius || '8px';
+
+    const frame = FRAMES[opts.frame] ? opts.frame : 'none';
+    const framed = frame !== 'none';
+
     const shell = [
-      'background:' + (theme.background || '#1C1C1E'),
-      'color:' + (theme.foreground || '#E1E4E8'),
+      'background:' + bg,
+      'color:' + fg,
       'padding:' + (opts.padding || '16px 18px'),
-      'border-radius:' + (opts.radius || '8px'),
+      // Inside a frame the corners belong to the wrapper, or the code's own
+      // rounding cuts a notch out of the header sitting directly above it.
+      'border-radius:' + (framed ? '0' : radius),
       'overflow-x:auto',
       'font:' + (opts.font || '13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'),
       // Explicit, because a host that sets `pre-wrap` would reflow the code.
       'white-space:pre',
-    ].map((d) => d + '!important').join(';');
+      'margin:0',
+    ];
+
+    // An unframed block still wants an edge: on a host whose background is
+    // close to the palette's, a borderless rectangle has nothing to say where
+    // it starts.
+    if (!framed) shell.push('border:1px solid ' + edge);
 
     // The marker keeps highlightAll() off this block. Without it the auto-scan
     // matches `pre > code`, re-renders the code in class form, and the inline
     // colours this whole function exists to produce are gone. A destination
     // that strips data attributes falls back to being re-highlighted in that
     // site's own palette, which is wrong but still legible.
-    return '<pre data-jsray-portable style="' + shell + '"><code style="font:inherit;' +
-      'color:inherit;background:none;padding:0">' + body + '</code></pre>';
+    // The inner <code> needs the same weight as the <pre>. Styling `code` with
+    // a background is one of the most common things a blog theme does, and at
+    // !important it paints a band behind every line of the block; the same rule
+    // usually sets a colour, which then shows through on any token the palette
+    // leaves unstyled. Both were visible before this carried !important.
+    const inner = [
+      'font:inherit',
+      'color:inherit',
+      'background:none',
+      'padding:0',
+      'border:0',
+    ].map((d) => d + '!important').join(';');
+
+    const pre = '<pre data-jsray-portable style="' +
+      shell.map((d) => d + '!important').join(';') +
+      '"><code style="' + inner + '">' + body + '</code></pre>';
+
+    if (!framed) return pre;
+
+    const chrome = FRAMES[frame]({
+      bg,
+      fg,
+      edge,
+      radius,
+      muted: mixHex(fg, bg, 58),
+      headerBg: mixHex(bg, fg, 88),
+      title: opts.title || '',
+      label: opts.label === undefined ? languageLabel(language) : opts.label,
+    });
+
+    // overflow:hidden is what makes the wrapper's radius clip the square
+    // corners of the header and the code beneath it.
+    return '<div data-jsray-portable style="' + [
+      'border:1px solid ' + edge,
+      'border-radius:' + radius,
+      'overflow:hidden',
+      'background:' + bg,
+    ].map((d) => d + '!important').join(';') + '">' + chrome + pre + '</div>';
   }
 
   // ============================================================
