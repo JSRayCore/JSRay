@@ -192,6 +192,22 @@ JSRay.renderPortable('const x = 42;', 'js', palette.themes.dark);
 通常保留内联 `style` —— 这正是它成立的全部依据。但**具体某个目的地允许什么,
 用之前值得先实测**。
 
+#### 窗饰
+
+代码块可以套一层窗框,让从官网复制走的东西和插件渲染出来的样子一致:
+
+```js
+JSRay.renderPortable(code, 'js', palette.themes.dark, {
+  frame: 'header',        // 'header' | 'macos' | 'minimal' | 'none'
+  title: 'merge.js',      // 显示在左侧
+});                       // 语言名会自动标在右侧
+```
+
+`header` 就是 jsray-wp 自己的标题栏,连颜色都一致:插件用
+`color-mix(in srgb, var(--jr-bg) 88%, var(--jr-fg) 12%)` 算出窗饰配色,而粘贴出去
+的块没有自定义属性,所以同样的算术在渲染时完成、输出成普通十六进制色值。`macos`
+是三个圆点,`minimal` 是一条细边。窗饰的体积代价:细边 490 字节、标题栏 750 字节、三个圆点 1,060 字节。
+
 内联样式能压过目的地写的任何普通优先级声明,但**压不过它的 `!important`** ——
 而主题里确实会有 `pre { white-space: pre-wrap !important }` 这种规则(为了不让
 代码在手机上横向滚动),它会让块重新换行、毁掉对齐。所以容器自己的声明都带上了

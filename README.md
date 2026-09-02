@@ -197,6 +197,24 @@ properties and no class. Editors that strip `<style>` blocks and class
 attributes generally keep inline `style`, which is the whole basis of it — but
 what any particular destination allows is worth testing before relying on it.
 
+#### Windows
+
+A block can sit in a frame, so what you copy from the site can look like what
+the plugin renders:
+
+```js
+JSRay.renderPortable(code, 'js', palette.themes.dark, {
+  frame: 'header',        // 'header' | 'macos' | 'minimal' | 'none'
+  title: 'merge.js',      // shown on the left
+});                       // the language labels itself on the right
+```
+
+`header` is jsray-wp's own title bar, down to the colours: the plugin computes
+its chrome with `color-mix(in srgb, var(--jr-bg) 88%, var(--jr-fg) 12%)`, and
+because a pasted block has no custom properties the same arithmetic runs at
+render time and ships a plain hex. `macos` is the three dots, `minimal` a
+hairline strip. A frame costs 490 bytes for the hairline, 750 for the title bar and 1,060 for the dots.
+
 Inline styles beat anything the destination writes at normal weight, but they
 lose to its `!important` — and themes do ship
 `pre { white-space: pre-wrap !important }` to stop code scrolling on phones,

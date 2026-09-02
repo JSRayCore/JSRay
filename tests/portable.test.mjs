@@ -16,6 +16,11 @@ const JSRay = require('../dist/jsray.js');
 const PALETTE = require('../tokens.json');
 const DARK = PALETTE.themes.dark;
 
+const SAMPLE_CODE = `export function merge(left, right) {
+  const out = [];
+  return out.concat(left, right);
+}`;
+
 test('portable output depends on nothing outside itself', () => {
   const html = JSRay.renderPortable('const a = 1;', 'js', DARK);
 
@@ -174,4 +179,92 @@ test('token colours take the same weight only when asked', () => {
     hardened.length > normal.length && hardened.length < normal.length * 1.5,
     `hardening every token changed the size by ${(hardened.length / normal.length).toFixed(2)}×`
   );
+});
+
+// ---------------------------------------------------------------------------
+// Frames
+//
+// A block copied from the site should be able to look like one the plugin
+// rendered, so the chrome is derived from the same palette rather than from a
+// second set of colours that would drift away from it.
+// ---------------------------------------------------------------------------
+
+const FRAMES = ['header', 'macos', 'minimal'];
+
+test('a frame wraps the block and keeps the marker on both parts', () => {
+  for (const frame of FRAMES) {
+    const html = JSRay.renderPortable('const a = 1;', 'js', DARK, { frame });
+    assert.match(html, /^<div data-jsray-portable /, `${frame} should return a wrapper`);
+    assert.match(html, /<pre data-jsray-portable /,
+      `${frame} lost the marker on the pre, so highlightAll would rewrite the code`);
+    assert.match(html, /<\/div>$/);
+  }
+});
+
+test('no frame is still a bare pre', () => {
+  for (const frame of [undefined, 'none', 'not-a-frame']) {
+    const html = JSRay.renderPortable('const a = 1;', 'js', DARK, { frame });
+    assert.match(html, /^<pre data-jsray-portable /,
+      `frame:${frame} should fall back to the unframed block`);
+  }
+});
+
+test('the header frame carries the plugin\'s own chrome colours', () => {
+  // jsray-block.css derives the bar with
+  // color-mix(in srgb, var(--jr-bg) 88%, var(--jr-fg) 12%). A pasted block has
+  // no custom properties, so the same arithmetic has to happen at render time —
+  // #1C1C1E and #E1E4E8 mix to #343436.
+  const html = JSRay.renderPortable('const a = 1;', 'js', DARK, { frame: 'header' });
+  assert.match(html, /background:#343436/,
+    'the header background no longer matches what the plugin computes');
+  assert.match(html, new RegExp(`border(?:-bottom)?:1px solid ${DARK.border}`));
+});
+
+test('frame chrome defends itself against the host stylesheet', () => {
+  // A host that styles `div` at !important would otherwise flatten the bar,
+  // and a frame that loses its background reads as broken rather than plain.
+  for (const frame of FRAMES) {
+    const html = JSRay.renderPortable('const a = 1;', 'js', DARK, { frame });
+    const chrome = html.slice(0, html.indexOf('<pre'));
+    assert.ok(
+      (chrome.match(/!important/g) || []).length >= 6,
+      `${frame} chrome is mostly at normal weight and a host rule will beat it`
+    );
+  }
+});
+
+test('the inner code element is defended too', () => {
+  // `code { background: … !important }` is one of the most common rules a blog
+  // theme ships. Unguarded it painted a band behind every line, and its colour
+  // showed through on tokens the palette leaves unstyled.
+  const html = JSRay.renderPortable('const a = 1;', 'js', DARK);
+  const code = html.slice(html.indexOf('<code'), html.indexOf('>', html.indexOf('<code')));
+  for (const prop of ['background', 'color', 'padding', 'font']) {
+    assert.match(code, new RegExp(`${prop}:[^;"]*!important`),
+      `the code element's ${prop} loses to a host rule that marks it important`);
+  }
+});
+
+test('the frame labels the language, and a title is escaped', () => {
+  const labelled = JSRay.renderPortable('const a = 1;', 'js', DARK, { frame: 'header' });
+  assert.match(labelled, />JavaScript</, 'js should be labelled JavaScript, not JS');
+
+  const jsx = JSRay.renderPortable('const a = 1;', 'jsx', DARK, { frame: 'header' });
+  assert.match(jsx, />JSX</, 'jsx collapses to javascript for grammar, but the label should not');
+
+  const hostile = JSRay.renderPortable('x', 'js', DARK, {
+    frame: 'header',
+    title: '<img src=x onerror=alert(1)>',
+  });
+  assert.doesNotMatch(hostile, /<img/, 'a title must not become a live tag');
+  assert.match(hostile, /&lt;img/);
+});
+
+test('a frame costs less than doubling the block', () => {
+  const plain = JSRay.renderPortable(SAMPLE_CODE, 'js', DARK).length;
+  for (const frame of FRAMES) {
+    const framed = JSRay.renderPortable(SAMPLE_CODE, 'js', DARK, { frame, title: 'merge.js' }).length;
+    assert.ok(framed < plain * 2,
+      `${frame} is ${(framed / plain).toFixed(1)}× the unframed block`);
+  }
 });
