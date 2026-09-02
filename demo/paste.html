@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="../dist/jsray.css?v=1">
 <link rel="stylesheet" href="footer.css?v=1">
 <style>
-  :root { --ui-bg:#141416; --ui-panel:#1C1C1E; --ui-line:#2C2C2E; --ui-fg:#E1E4E8; --ui-dim:#6B7681; --ui-accent:#D08BFC; }
+  :root { --ui-bg:#141416; --ui-panel:#1C1C1E; --ui-line:#2C2C2E; --ui-fg:#E1E4E8; --ui-dim:#6B7681; --ui-accent:#D08BFC; --ui-ok:#5DD8B0; --ui-warn:#F2B870; }
   * { box-sizing: border-box; }
   body { background: var(--ui-bg); color: var(--ui-fg); margin: 0; padding: 0 24px 80px;
          font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif; }
@@ -28,7 +28,14 @@
   .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
               gap: 16px 20px; align-items: end; margin: 28px 0 18px; }
   @media (max-width: 780px) { .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 460px) { .controls { grid-template-columns: 1fr; } }
+  @media (max-width: 460px) {
+    .controls { grid-template-columns: 1fr; }
+    /* Every control above it is full width in one column; a 200px button left
+       of all that reads as something that got left behind. */
+    .actions { flex-direction: column; align-items: stretch; }
+    .actions button { width: 100%; }
+    .status { margin-left: 0; text-align: center; }
+  }
 
   .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .field > span { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
@@ -45,12 +52,36 @@
      second row look like a leftover. */
   .actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap;
              align-items: center; gap: 12px 16px; margin-top: 2px; }
-  .actions button { height: 40px; padding: 0 18px; }
+  .actions button { height: 40px; padding: 0 20px; min-width: 200px; }
   button { cursor: pointer; font-weight: 600; }
   button:hover { border-color: var(--ui-accent); }
-  button:focus-visible, select:focus-visible, textarea:focus-visible {
+  button:focus-visible, select:focus-visible, textarea:focus-visible,
+  input[type=text]:focus-visible {
     outline: 2px solid var(--ui-accent); outline-offset: 2px; }
-  button.primary { background: var(--ui-accent); border-color: var(--ui-accent); color: #17151b; }
+
+  button.primary {
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+    color: #17151b;
+    box-shadow: 0 1px 0 rgba(255,255,255,.22) inset, 0 1px 8px rgba(208,139,252,.18);
+    transition: filter 120ms ease, transform 90ms ease, box-shadow 120ms ease,
+                background 160ms ease, border-color 160ms ease;
+  }
+  button.primary:hover { filter: brightness(1.06); box-shadow: 0 1px 0 rgba(255,255,255,.28) inset, 0 2px 14px rgba(208,139,252,.28); }
+  /* A press has to be felt, not just assumed. */
+  button.primary:active { transform: translateY(1px); filter: brightness(.97);
+                          box-shadow: 0 1px 0 rgba(255,255,255,.15) inset; }
+
+  /* The result used to be a separate line of text two elements away, which is
+     easy to miss at the moment you are looking at the button you just pressed.
+     The button says it itself; the note beside it only adds the qualifier. */
+  button.primary.is-done   { background: var(--ui-ok);   border-color: var(--ui-ok);   color: #10221c; box-shadow: none; }
+  button.primary.is-failed { background: var(--ui-warn); border-color: var(--ui-warn); color: #2a1410; box-shadow: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    button.primary { transition: none; }
+    button.primary:active { transform: none; }
+  }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
   /* A grid item defaults to min-width:auto and so refuses to shrink below its
@@ -261,7 +292,7 @@
           'text/plain': new Blob([text], { type: 'text/plain' }),
         }),
       ]);
-      say('Copied — paste it somewhere');
+      report('is-done', 'Copied', 'both formats — rich text and source');
     } catch (e) {
       // clipboard.write() 需要安全上下文和真实用户手势，Safari 还对时机挑剔。
       //
@@ -271,11 +302,11 @@
       // execCommand('copy')，浏览器会把 text/html 放进剪贴板，这也是富文本
       // 复制在 Clipboard API 之前唯一的做法。
       if (fallbackCopyRich(html, text)) {
-        say('Copied — paste it somewhere');
+        report('is-done', 'Copied', 'rich text and source');
       } else {
         els.html.focus();
         els.html.select();
-        say('Copy failed — select the HTML below and copy it by hand');
+        report('is-failed', 'Copy refused', 'the browser blocked it — the HTML below is selected, copy it by hand');
       }
     }
   }
@@ -322,9 +353,26 @@
     }
   }
 
-  function say(msg) {
-    els.status.textContent = msg;
-    window.setTimeout(function () { els.status.textContent = ''; }, 2600);
+  // The button reports the outcome on itself, because that is where the eye
+  // already is; the note beside it carries only the detail worth reading —
+  // which formats went, or what to do when the browser refused.
+  const BUTTON_LABEL = 'Copy rendered block';
+  let resetTimer = 0;
+
+  function report(state, label, detail) {
+    const btn = $('copy');
+    window.clearTimeout(resetTimer);
+
+    btn.classList.remove('is-done', 'is-failed');
+    if (state) btn.classList.add(state);
+    btn.textContent = label;
+    els.status.textContent = detail || '';
+
+    resetTimer = window.setTimeout(function () {
+      btn.classList.remove('is-done', 'is-failed');
+      btn.textContent = BUTTON_LABEL;
+      els.status.textContent = '';
+    }, 2600);
   }
 
   els.code.addEventListener('input', update);
