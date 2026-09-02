@@ -83,7 +83,13 @@
     button.primary:active { transform: none; }
   }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  /* The two panes are one before-and-after pair, so they have to end where
+     each other ends. Left to themselves the editor stopped at its 300px
+     minimum while the preview ran on to whatever the block needed — 30px
+     lower — and the pair read as two unrelated boxes. */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
+  .pane { display: flex; flex-direction: column; }
+  .pane > textarea, .pane > #preview { flex: 1 1 auto; }
   /* A grid item defaults to min-width:auto and so refuses to shrink below its
      content — and the preview holds a code block. Without this the column was
      575px wide on a 390px phone and the whole page scrolled sideways. */
@@ -112,7 +118,10 @@
   #preview:hover::-webkit-scrollbar-thumb { background: #3A3A3F; background-clip: content-box; }
 
   /* 预览容器刻意不设背景：可移植块自带背景，看到什么就是粘贴后的样子 */
-  #preview { min-height: 300px; border: 1px dashed var(--ui-line); border-radius: 8px; padding: 14px; overflow: auto; }
+  /* Same inset as the editor's text, so the block inside starts where the
+     code opposite it starts rather than 5px further in. */
+  #preview { min-height: 300px; border: 1px dashed var(--ui-line); border-radius: 8px;
+             padding: 9px 10px; overflow: auto; }
   #preview > pre, #preview > div { margin: 0; }
 
   .out { margin-top: 22px; }
