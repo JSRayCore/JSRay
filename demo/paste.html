@@ -89,7 +89,11 @@
      lower — and the pair read as two unrelated boxes. */
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
   .pane { display: flex; flex-direction: column; }
-  .pane > textarea, .pane > #preview { flex: 1 1 auto; }
+  .pane > textarea { flex: 1 1 auto; }
+  /* The surface hugs the block instead of stretching with the row: stretched,
+     everything the row was taller than the block landed as one gap along the
+     bottom, against 10px on the other three sides. */
+  .pane > #preview { flex: 0 0 auto; }
   /* A grid item defaults to min-width:auto and so refuses to shrink below its
      content — and the preview holds a code block. Without this the column was
      575px wide on a 390px phone and the whole page scrolled sideways. */
@@ -120,8 +124,10 @@
   /* 预览容器刻意不设背景：可移植块自带背景，看到什么就是粘贴后的样子 */
   /* Same inset as the editor's text, so the block inside starts where the
      code opposite it starts rather than 5px further in. */
-  #preview { min-height: 300px; border: 1px dashed var(--ui-line); border-radius: 8px;
-             padding: 9px 10px; overflow: auto; }
+  /* Equal on all four sides, and no minimum — a minimum is just the same gap
+     under a different name whenever the block is shorter than it. */
+  #preview { border: 1px dashed var(--ui-line); border-radius: 8px;
+             padding: 10px; overflow: auto; }
   #preview > pre, #preview > div { margin: 0; }
 
   .out { margin-top: 22px; }
@@ -139,7 +145,6 @@
     header.top h1 { font-size: 23px; }
     .controls { gap: 12px 14px; margin: 20px 0 14px; }
     textarea { min-height: 200px; }
-    #preview { min-height: 160px; }
   }
 
   /* 44px is the touch target both Apple and the WCAG rule settle on; every
