@@ -21,13 +21,31 @@
   header.top nav a { color: var(--ui-accent); text-decoration: none; margin-right: 18px; }
   header.top nav a:hover, header.top nav a:focus-visible { text-decoration: underline; }
 
-  .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end; margin: 28px 0 18px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
+  /* A fixed column count rather than flex-wrap. Six controls packed greedily
+     left five on one line and one alone on the next, and the widest select
+     ("Destination overrides spans") set its own width, so no two rows lined
+     up. Three columns divide six evenly at every step down. */
+  .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 16px 20px; align-items: end; margin: 28px 0 18px; }
+  @media (max-width: 780px) { .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 460px) { .controls { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .field > span { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .09em;
                   text-transform: uppercase; color: var(--ui-dim); }
   select, button, textarea, input[type=text] { font: inherit; color: inherit; background: var(--ui-panel);
                              border: 1px solid var(--ui-line); border-radius: 6px; padding: 8px 10px; }
-  select { min-width: 190px; }
+  /* A select and a text input do not agree on an intrinsic height — 38px
+     against 44px here — and bottom-aligning them tilted every label above.
+     Stating the height is what keeps the rows level. */
+  select, input[type=text] { width: 100%; height: 40px; }
+
+  /* The action sits on its own full-width line: it is the one thing here that
+     is not a setting, and mixing it into the field grid is what made the
+     second row look like a leftover. */
+  .actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap;
+             align-items: center; gap: 12px 16px; margin-top: 2px; }
+  .actions button { height: 40px; padding: 0 18px; }
   button { cursor: pointer; font-weight: 600; }
   button:hover { border-color: var(--ui-accent); }
   button:focus-visible, select:focus-visible, textarea:focus-visible {
@@ -63,8 +81,6 @@
     header.top { padding: 36px 0 20px; }
     header.top h1 { font-size: 23px; }
     .controls { gap: 12px 14px; margin: 20px 0 14px; }
-    select, input[type=text] { min-width: 0; width: 100%; }
-    .field { flex: 1 1 150px; }
     textarea { min-height: 200px; }
     #preview { min-height: 160px; }
   }
@@ -72,7 +88,8 @@
   /* 44px is the touch target both Apple and the WCAG rule settle on; every
      control here was smaller, on the iPad too. */
   @media (pointer: coarse) {
-    select, button, input[type=text] { min-height: 44px; }
+    select, input[type=text] { height: 44px; }
+    .actions button { height: 44px; }
     /* The nav links underline on hover, so the hit area is grown with an
        overlay rather than padding that would drag the underline down. */
     header.top nav a { position: relative; }
@@ -121,8 +138,10 @@
         <option value="1">Destination overrides spans</option>
       </select>
     </label>
-    <button id="copy" class="primary" type="button">Copy rendered block</button>
-    <span class="status" id="status"></span>
+    <div class="actions">
+      <button id="copy" class="primary" type="button">Copy rendered block</button>
+      <span class="status" id="status"></span>
+    </div>
   </div>
 
   <div class="grid">
