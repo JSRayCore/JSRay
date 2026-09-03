@@ -115,7 +115,7 @@ No engine changes. `dist/jsray.js` is byte-for-byte the 0.0.1-beta.3 build — t
 ## [0.0.1-beta.1] — 2026-07-17
 
 ### Status
-- **First public beta.** The repository is public at [github.com/JSRayCore/JSRay](https://github.com/JSRayCore/JSRay); integration repositories (WordPress, VS Code, terminal) open as each reaches its own beta.
+- **First public beta.** The repository is public at [github.com/jsrayorg/jsray](https://github.com/jsrayorg/jsray); integration repositories (WordPress, VS Code, terminal) open as each reaches its own beta.
 
 ### Highlights (everything from the internal series below)
 - Zero-dependency rendering kernel: 35 language families / 79 language keys, 23-class token semantics with six-family identifier separation.

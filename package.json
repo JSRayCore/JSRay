@@ -7,10 +7,10 @@
   "homepage": "https://jsray.org",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JSRayCore/JSRay.git"
+    "url": "git+https://github.com/jsrayorg/jsray.git"
   },
   "bugs": {
-    "url": "https://github.com/JSRayCore/JSRay/issues"
+    "url": "https://github.com/jsrayorg/jsray/issues"
   },
   "main": "dist/jsray.js",
   "style": "dist/jsray.css",
