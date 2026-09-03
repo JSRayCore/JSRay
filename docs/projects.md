@@ -66,7 +66,7 @@ Core changes flow into plugin repositories by copying or packaging `dist/` asset
 | `jsray` | npm `@jsray/core` | MIT | public |
 | `jsray-wp` | WordPress.org plugin | GPLv2 or later | public |
 | `jsray-terminal` | npm CLI | MIT | not published yet |
-| `jsray-vscode` | VS Code Marketplace | MIT | not published yet |
+| `jsray-vscode` | VS Code Marketplace | MIT | public |
 
 Future platform repositories such as `jsray-react`, `jsray-astro`, or
 `jsray-mdx` if needed.

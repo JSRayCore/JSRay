@@ -107,13 +107,13 @@ JSRay is intended to be a fully open-source code rendering ecosystem: one small 
 
 > One renderer. Many places for code to shine.
 
-Official integrations live in their own repositories, use JSRay Core by default, and stay fully usable without paid feature locks. Planned integrations:
+Official integrations live in their own repositories, use JSRay Core by default, and stay fully usable without paid feature locks. The integrations:
 
 | Integration | Repository | Status |
 |---|---|---|
-| WordPress plugin | `jsray-wp` | Coming soon |
-| VS Code extension | `jsray-vscode` | Coming soon |
-| Terminal CLI | `jsray-terminal` | Coming soon |
+| WordPress plugin | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | Public beta · not on WordPress.org yet |
+| VS Code extension | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | Public beta · not on the Marketplace yet |
+| Terminal CLI | `jsray-terminal` | In development |
 | …and more | — | Community & official adapters welcome |
 
 Each repository is published as it reaches its own beta. Every integration exposes renderer adapter hooks, so a host project can swap in another renderer when it needs to.

@@ -86,13 +86,13 @@ JSRay 的目标是成为完整开源的代码渲染生态：一个轻量 Core �
 
 > 一个渲染核心，让代码在不同平台中发光。
 
-官方集成各自独立仓库,默认使用 JSRay Core,并保持完整可用,不以付费锁定基础能力。规划中的集成:
+官方集成各自独立仓库,默认使用 JSRay Core,并保持完整可用,不以付费锁定基础能力。集成一览:
 
 | 集成 | 仓库 | 状态 |
 |---|---|---|
-| WordPress 插件 | `jsray-wp` | 即将推出 |
-| VS Code 扩展 | `jsray-vscode` | 即将推出 |
-| 终端 CLI | `jsray-terminal` | 即将推出 |
+| WordPress 插件 | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | 公开测试版 · 尚未上架 WordPress.org |
+| VS Code 扩展 | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | 公开测试版 · 尚未上架 Marketplace |
+| 终端 CLI | `jsray-terminal` | 开发中 |
 | …以及更多 | — | 欢迎官方与社区适配器 |
 
 各仓库在其到达 beta 时对外公开。每个集成都开放 renderer adapter / hook,宿主项目需要时可接入其它渲染器。

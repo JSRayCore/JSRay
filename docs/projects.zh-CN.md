@@ -66,7 +66,7 @@ Core 的变更通过拷贝或打包 `dist/` 资产流向插件仓库。插件的
 | `jsray` | npm `@jsray/core` | MIT | 已公开 |
 | `jsray-wp` | WordPress.org 插件 | GPLv2 or later | 已公开 |
 | `jsray-terminal` | npm CLI | MIT | 尚未发布 |
-| `jsray-vscode` | VS Code Marketplace | MIT | 尚未发布 |
+| `jsray-vscode` | VS Code Marketplace | MIT | 已公开 |
 
 未来按需增加的平台仓库，例如 `jsray-react`、`jsray-astro`、`jsray-mdx`。
 
