@@ -153,7 +153,7 @@ PRERELEASE=""
 
 printf '%s' "$NOTES" | gh release create "$TAG" \
   "$ZIP" build/SHA256SUMS.txt build/integrity.json \
-  --repo JSRayCore/JSRay \
+  --repo jsrayorg/jsray \
   --title "JSRay Core $VERSION" \
   --notes-file - \
   $PRERELEASE
@@ -161,7 +161,7 @@ printf '%s' "$NOTES" | gh release create "$TAG" \
 echo
 echo "released $VERSION"
 echo "  npm     https://www.npmjs.com/package/@jsray/core/v/$VERSION"
-echo "  github  https://github.com/JSRayCore/JSRay/releases/tag/$TAG"
+echo "  github  https://github.com/jsrayorg/jsray/releases/tag/$TAG"
 echo "  site    https://jsray.org/dist/jsray.js"
 echo
 echo "next: propagate to the integrations with 'npm run sync:integrations'"
