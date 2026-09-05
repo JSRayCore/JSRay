@@ -63,13 +63,13 @@ Core changes flow into plugin repositories by copying or packaging `dist/` asset
 
 | Repository | Intended channel | Licence | Available from today |
 |---|---|---|---|
-| `jsray` | npm `@jsray/core` | MIT | npm — `@jsray/core@0.0.2-beta.2` |
-| `jsray-wp` | WordPress.org plugin | GPLv2 or later | GitHub release zip · not on WordPress.org yet |
-| `jsray-terminal` | npm CLI | MIT | GitHub — `npm i -g github:jsrayorg/jsray-terminal` · not on npm yet |
-| `jsray-vscode` | VS Code Marketplace | MIT | GitHub release `.vsix` · not on the Marketplace yet |
+| `jsray` | npm `@jsray/core` | MIT | npm — `@jsray/core@0.0.2-beta.3` |
+| `jsray-wp` | WordPress.org plugin | GPLv2 or later | GitHub release zip |
+| `jsray-terminal` | npm CLI | MIT | GitHub — `npm i -g github:jsrayorg/jsray-terminal` |
+| `jsray-vscode` | VS Code Marketplace | MIT | GitHub release `.vsix` |
 
-A public repository is not a listing. The last column is where a user can
-actually get the thing today; the second is where it is headed.
+The last column is where a user gets the thing today; the second is the channel
+each is headed for at `0.1.0`.
 
 Future platform repositories such as `jsray-react`, `jsray-astro`, or
 `jsray-mdx` if needed.
@@ -94,7 +94,7 @@ The public website keeps the brand concentrated under `jsray.org`:
   moves on every release, which is right for the demo and wrong for a site
   nobody is watching.
 - `https://jsray.org/v/<version>/`: the same files frozen per release
-  (`jsray.org/v/0.0.2-beta.2/jsray.js`). A page that pins here keeps rendering
+  (`jsray.org/v/0.0.2-beta.3/jsray.js`). A page that pins here keeps rendering
   the way it did the day it was written.
 
 `tools/build-site.sh` emits both. Cloudflare replaces the whole asset bundle on

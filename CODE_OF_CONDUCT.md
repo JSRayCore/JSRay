@@ -30,8 +30,12 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement. All complaints
-will be reviewed and investigated promptly and fairly.
+reported to <support@jsray.org>. All complaints will be reviewed and
+investigated promptly and fairly, and the reporter's identity is not shared
+outside the people handling the report.
+
+Saying complaints "may be reported" without saying where is the same as having
+no channel: this document named none until 0.0.2-beta.3.
 
 ## Attribution
 

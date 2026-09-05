@@ -64,11 +64,11 @@ Core 的变更通过拷贝或打包 `dist/` 资产流向插件仓库。插件的
 | 仓库 | 交付形态 | 许可 | 状态 |
 |---|---|---|---|
 | `jsray` | npm `@jsray/core` | MIT | 已公开 |
-| `jsray-wp` | WordPress.org 插件 | GPLv2 or later | GitHub Release 的 zip · 尚未上架 WordPress.org |
-| `jsray-terminal` | npm CLI | MIT | GitHub —— `npm i -g github:jsrayorg/jsray-terminal` · 尚未发布到 npm |
-| `jsray-vscode` | VS Code Marketplace | MIT | GitHub Release 的 `.vsix` · 尚未上架 Marketplace |
+| `jsray-wp` | WordPress.org 插件 | GPLv2 or later | GitHub Release 的 zip |
+| `jsray-terminal` | npm CLI | MIT | GitHub —— `npm i -g github:jsrayorg/jsray-terminal` |
+| `jsray-vscode` | VS Code Marketplace | MIT | GitHub Release 的 `.vsix` |
 
-仓库公开不等于已上架。最后一列是**今天用户实际能从哪里拿到**,第二列是它将来要去的地方。
+最后一列是**今天用户从哪里拿到**,第二列是各自在 `0.1.0` 要去的渠道。
 
 未来按需增加的平台仓库，例如 `jsray-react`、`jsray-astro`、`jsray-mdx`。
 
@@ -89,7 +89,7 @@ GPLv2 or later,因为 WordPress.org 的第一条指南接受任何 GPL 兼容许
   (`jsray.org/dist/jsray.js`、`jsray.org/dist/themes/<name>.css`)。这个路径每次
   发版都会变 —— 对演示页是对的，对没人盯着的站点是错的。
 - `https://jsray.org/v/<version>/`：同样的文件按版本固化
-  (`jsray.org/v/0.0.2-beta.2/jsray.js`)。锁定到这里的页面，今天怎么渲染，
+  (`jsray.org/v/0.0.2-beta.3/jsray.js`)。锁定到这里的页面，今天怎么渲染，
   以后还怎么渲染。
 
 `tools/build-site.sh` 两者都生成。Cloudflare 每次部署都会整体替换资产包，因此

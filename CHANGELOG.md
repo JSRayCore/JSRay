@@ -7,6 +7,35 @@ versioning follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.0.2-beta.3] — 2026-09-06
+
+Documentation and the guards around it. No runtime change: `dist/` differs from
+beta.2 only in the version string it reports.
+
+### Fixed
+- **The Code of Conduct says where to report.** Its enforcement section invited
+  reports "to the community leaders responsible for enforcement" and named no
+  address, which is the same as having no channel. It now names
+  `support@jsray.org`, the address SECURITY.md already used.
+- **A release subject that is a version and one word is rejected.**
+  `tools/hooks/commit-msg` already refused a bare `0.0.1-beta.3`, with a
+  comment about how a version number lands on every file the release touched.
+  `Release 0.0.2-beta.2` walked past that pattern and did exactly what it
+  describes, on twelve files. The pattern now covers a leading
+  release/bump/publish/tag word.
+- **The subject check runs on pull requests.** The hook only protects a
+  machine that has configured `core.hooksPath`; CI now runs the same file
+  against every commit a pull request adds, where it cannot be skipped.
+- **The roadmap entry for jsray-vscode and jsray-terminal.** It described both
+  as unpublished, bundling Core `0.0.1-beta.5`, with READMEs pointing at
+  `0.0.1-beta.1`. Both are public, both bundle `0.0.2-beta.1`, and both now
+  derive and check the badges it said they needed first.
+
+### Changed
+- **Availability is stated, not contrasted.** The integrations table and
+  `docs/projects.md` paired each channel with the one it is not on yet. They
+  now say where each integration is installed from.
+
 ## [0.0.2-beta.2] — 2026-09-05
 
 Ships the portable renderer, and corrects what the registry and the site were
@@ -30,7 +59,7 @@ saying about this project.
 
 - **The palette fallback chain has one implementation.** `applyThemeToRoot` carried the only copy of it; `resolveToken` is now shared with the portable renderer, because two renderers resolving the same palette by two implementations is how they come to disagree about a palette that predates a token key.
 - The site build ships `themes/` and the new page. The paste page fetches every palette at runtime for the same reason the Studio does — a second copy of the colours is a second thing to drift.
-- **The README says what the integrations are, because npm shows this file.** The published page for `@jsray/core@0.0.2-beta.1` still lists all three as "Coming soon"; all three are public with releases, and the table now links each one and says where it can actually be installed from — which is GitHub rather than its host's directory in every case. npm freezes a package page per version, so a correction only reaches the registry by publishing.
+- **The README says what the integrations are, because npm shows this file.** The published page for `@jsray/core@0.0.2-beta.1` still lists all three as "Coming soon"; all three are public with releases, and the table now links each one and says where each can be installed from. npm freezes a package page per version, so a correction only reaches the registry by publishing.
 - **`repository` and `bugs` point at the organisation's current name.** They were published as `github.com/JSRayCore/JSRay`, which still redirects — but the frozen metadata is what every tool reads, and the org name it names no longer exists.
 - **The versioning doc says why Core counts its betas.** It justified the counter mechanically — `check:versions` wants it, `version_compare()` orders it — which is true and is not the reason. Core is the kernel every integration renders through, so it earns more revision rounds before `0.1.0` than anything built on it, and those land inside one patch. The integrations bump the patch each time, so a counter would say nothing.
 
