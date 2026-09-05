@@ -7,6 +7,11 @@ versioning follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.0.2-beta.2] — 2026-09-05
+
+Ships the portable renderer, and corrects what the registry and the site were
+saying about this project.
+
 ### Added
 
 - **Window frames for a portable block**, via `renderPortable(…, { frame })`. `header` is jsray-wp's own title bar — bold filename on the left, language on the right — so a block copied from the site and a block the plugin rendered read as the same product; `macos` is the three dots; `minimal` is a hairline strip. `title` and `label` fill them, and the chrome's colours are computed from the palette with the same arithmetic the plugin's stylesheet does in `color-mix()`, rather than a second set of colours that would drift. A frame costs 490 bytes for the hairline, 750 for the title bar and 1,060 for the dots.
@@ -25,6 +30,9 @@ versioning follows [SemVer](https://semver.org/).
 
 - **The palette fallback chain has one implementation.** `applyThemeToRoot` carried the only copy of it; `resolveToken` is now shared with the portable renderer, because two renderers resolving the same palette by two implementations is how they come to disagree about a palette that predates a token key.
 - The site build ships `themes/` and the new page. The paste page fetches every palette at runtime for the same reason the Studio does — a second copy of the colours is a second thing to drift.
+- **The README says what the integrations are, because npm shows this file.** The published page for `@jsray/core@0.0.2-beta.1` still lists all three as "Coming soon"; all three are public with releases, and the table now links each one and says where it can actually be installed from — which is GitHub rather than its host's directory in every case. npm freezes a package page per version, so a correction only reaches the registry by publishing.
+- **`repository` and `bugs` point at the organisation's current name.** They were published as `github.com/JSRayCore/JSRay`, which still redirects — but the frozen metadata is what every tool reads, and the org name it names no longer exists.
+- **The versioning doc says why Core counts its betas.** It justified the counter mechanically — `check:versions` wants it, `version_compare()` orders it — which is true and is not the reason. Core is the kernel every integration renders through, so it earns more revision rounds before `0.1.0` than anything built on it, and those land inside one patch. The integrations bump the patch each time, so a counter would say nothing.
 
 ## [0.0.2-beta.1] — 2026-08-24
 
