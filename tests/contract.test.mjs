@@ -393,8 +393,8 @@ test('site: the footer links the integrations that exist and only names the rest
   //
   // Both lists move as integrations ship. Moving a name from one to the other
   // is the deliberate act that publishing it should be.
-  const PUBLIC = ['jsray-wp', 'jsray-vscode'];
-  const UNPUBLISHED = ['jsray-terminal'];
+  const PUBLIC = ['jsray-wp', 'jsray-vscode', 'jsray-terminal'];
+  const UNPUBLISHED = [];
 
   for (const page of ['demo/index.html', 'demo/studio.html']) {
     const footer = read(page).match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0];

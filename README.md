@@ -113,8 +113,18 @@ Official integrations live in their own repositories, use JSRay Core by default,
 |---|---|---|
 | WordPress plugin | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | Public beta · not on WordPress.org yet |
 | VS Code extension | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | Public beta · not on the Marketplace yet |
-| Terminal CLI | `jsray-terminal` | In development |
+| Terminal CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | Public beta · not on npm yet |
 | …and more | — | Community & official adapters welcome |
+
+Each is installable today, from GitHub rather than from its host's directory:
+
+```sh
+# Terminal CLI
+npm i -g github:jsrayorg/jsray-terminal
+```
+
+- **VS Code** — download the `.vsix` from [its latest release](https://github.com/jsrayorg/jsray-vscode/releases/latest), then `code --install-extension jsray-vscode-<version>.vsix`, or **Extensions** → `…` → **Install from VSIX…**
+- **WordPress** — download the `.zip` from [its latest release](https://github.com/jsrayorg/jsray-wp/releases/latest), then **Plugins → Add New → Upload Plugin**
 
 Each repository is published as it reaches its own beta. Every integration exposes renderer adapter hooks, so a host project can swap in another renderer when it needs to.
 

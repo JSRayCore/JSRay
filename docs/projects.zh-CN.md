@@ -64,9 +64,11 @@ Core 的变更通过拷贝或打包 `dist/` 资产流向插件仓库。插件的
 | 仓库 | 交付形态 | 许可 | 状态 |
 |---|---|---|---|
 | `jsray` | npm `@jsray/core` | MIT | 已公开 |
-| `jsray-wp` | WordPress.org 插件 | GPLv2 or later | 已公开 |
-| `jsray-terminal` | npm CLI | MIT | 尚未发布 |
-| `jsray-vscode` | VS Code Marketplace | MIT | 已公开 |
+| `jsray-wp` | WordPress.org 插件 | GPLv2 or later | GitHub Release 的 zip · 尚未上架 WordPress.org |
+| `jsray-terminal` | npm CLI | MIT | GitHub —— `npm i -g github:jsrayorg/jsray-terminal` · 尚未发布到 npm |
+| `jsray-vscode` | VS Code Marketplace | MIT | GitHub Release 的 `.vsix` · 尚未上架 Marketplace |
+
+仓库公开不等于已上架。最后一列是**今天用户实际能从哪里拿到**,第二列是它将来要去的地方。
 
 未来按需增加的平台仓库，例如 `jsray-react`、`jsray-astro`、`jsray-mdx`。
 
