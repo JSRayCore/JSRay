@@ -82,6 +82,23 @@ Every non-trivial commit gets a body, and the body answers **why**: what was
 wrong before, what breaks if it stays that way, what was measured. A commit
 whose body only rephrases its subject is a commit with no body.
 
+**One concern per commit, and a version bump is a concern of its own.** The
+subject is printed beside every file the commit touched, so a commit that
+carries four unrelated changes prints a sentence that is a quarter true of each
+of them. Releasing 0.0.2-beta.3 put *Carry the documentation corrections to npm
+and the site* on sixteen paths, including `CODE_OF_CONDUCT.md` and
+`.github/` — where it said nothing about what had changed. The subject was not
+the problem; folding a Code of Conduct contact, a CI job, a hook pattern and a
+version bump into one commit was.
+
+Split by what changed, not by when it shipped: the release ends with a bump
+that touches only the files a bump has to touch — `package.json`,
+`version.json`, `dist/`, `src/`, `types/`, `tokens.json`, `vocabulary.json`,
+`integrity.json`, the badges and pinned paths in the READMEs, `SECURITY.md`,
+`CHANGELOG.md`, `demo/`. Everything else is its own commit, made before it.
+`tools/release.sh` rejects a release whose final commit reaches outside that
+set.
+
 **Keep the subject under about 60 characters.** GitHub's file listing — the
 view that shows which commit last touched each file — truncates there, and a
 subject that survives it is the difference between a readable history and a

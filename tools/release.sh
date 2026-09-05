@@ -73,6 +73,23 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+# The release commit's subject is printed beside every file it touched. When it
+# also carries changes a bump did not require, that one sentence becomes the
+# description of files it says nothing about: 0.0.2-beta.3 put "Carry the
+# documentation corrections to npm and the site" on CODE_OF_CONDUCT.md and
+# .github/, neither of which had anything to do with npm or the site.
+#
+# So the last commit may touch only what a bump has to touch. Anything else
+# belongs in its own commit, made before this one — which is also what makes
+# each of those files show a sentence about itself.
+STRAY=$(git show --name-only --format= HEAD | grep -vE '^(package\.json|version\.json|integrity\.json|tokens\.json|vocabulary\.json|CHANGELOG\.md|SECURITY\.md|README\.md|README\.zh-CN\.md|dist/|src/|types/|demo/|docs/versioning(\.zh-CN)?\.md|docs/projects(\.zh-CN)?\.md)' || true)
+if [ -n "$STRAY" ]; then
+  echo "error: the release commit reaches outside a version bump:" >&2
+  printf '  %s\n' $STRAY >&2
+  echo "       split those into their own commits first — see CONTRIBUTING.md." >&2
+  exit 1
+fi
+
 if git rev-parse "$TAG" >/dev/null 2>&1; then
   echo "error: tag $TAG already exists — bump version.json first." >&2
   exit 1
