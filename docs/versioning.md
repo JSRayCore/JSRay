@@ -22,9 +22,15 @@ Internal test builds may be shared privately, but they should not be described a
 
 ### The ladder
 
-Each beta bumps the **patch**; the counter after it exists because
-`check:versions` requires it and because `version_compare()` is what orders
-these — string order would put `0.0.10` before `0.0.2`.
+Each beta bumps the **patch**, and Core alone keeps a counter after it. That is
+not a notation preference: Core is the kernel every integration renders through,
+so it earns more revision rounds before `0.1.0` than anything built on top of it,
+and those rounds land within a single patch. The integrations do not iterate that
+way, so they carry no counter.
+
+The mechanics follow from that: `check:versions` requires the counter here, and
+`version_compare()` is what orders these — string order would put `0.0.10` before
+`0.0.2`.
 
 ```
 0.0.1-beta.1 … 0.0.1-beta.5 → 0.0.2-beta.1 → 0.0.3-beta.1 → … → 0.1.0
