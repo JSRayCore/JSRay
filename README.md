@@ -9,7 +9,7 @@
 
 [![npm](https://img.shields.io/npm/v/@jsray/core/beta?label=npm)](https://www.npmjs.com/package/@jsray/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.2--beta.1-lightgrey)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.0.2--beta.2-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
@@ -46,7 +46,7 @@ Or drop it into a page with no build step at all:
 watching, pin the version instead** — every release is frozen at its own path:
 
 ```html
-<script src="https://jsray.org/v/0.0.2-beta.1/jsray.js"></script>
+<script src="https://jsray.org/v/0.0.2-beta.2/jsray.js"></script>
 ```
 
 ### Verifying what you loaded
@@ -56,7 +56,7 @@ A pinned URL says which release you asked for, not which bytes you got. Add a
 hash and the browser refuses to run the file if it is not the one published:
 
 ```html
-<script src="https://jsray.org/v/0.0.2-beta.1/jsray.js"
+<script src="https://jsray.org/v/0.0.2-beta.2/jsray.js"
         integrity="sha256-…"
         crossorigin="anonymous"></script>
 ```
@@ -64,7 +64,7 @@ hash and the browser refuses to run the file if it is not the one published:
 The hashes live next to the files they describe, in the same format SRI uses:
 
 ```
-https://jsray.org/v/0.0.2-beta.1/integrity.json
+https://jsray.org/v/0.0.2-beta.2/integrity.json
 ```
 
 `crossorigin="anonymous"` is required, not optional — SRI on a cross-origin
@@ -107,14 +107,24 @@ JSRay is intended to be a fully open-source code rendering ecosystem: one small 
 
 > One renderer. Many places for code to shine.
 
-Official integrations live in their own repositories, use JSRay Core by default, and stay fully usable without paid feature locks. Planned integrations:
+Official integrations live in their own repositories, use JSRay Core by default, and stay fully usable without paid feature locks. The integrations:
 
 | Integration | Repository | Status |
 |---|---|---|
-| WordPress plugin | `jsray-wp` | Coming soon |
-| VS Code extension | `jsray-vscode` | Coming soon |
-| Terminal CLI | `jsray-terminal` | Coming soon |
+| WordPress plugin | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | Public beta · not on WordPress.org yet |
+| VS Code extension | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | Public beta · not on the Marketplace yet |
+| Terminal CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | Public beta · not on npm yet |
 | …and more | — | Community & official adapters welcome |
+
+Each is installable today, from GitHub rather than from its host's directory:
+
+```sh
+# Terminal CLI
+npm i -g github:jsrayorg/jsray-terminal
+```
+
+- **VS Code** — download the `.vsix` from [its latest release](https://github.com/jsrayorg/jsray-vscode/releases/latest), then `code --install-extension jsray-vscode-<version>.vsix`, or **Extensions** → `…` → **Install from VSIX…**
+- **WordPress** — download the `.zip` from [its latest release](https://github.com/jsrayorg/jsray-wp/releases/latest), then **Plugins → Add New → Upload Plugin**
 
 Each repository is published as it reaches its own beta. Every integration exposes renderer adapter hooks, so a host project can swap in another renderer when it needs to.
 

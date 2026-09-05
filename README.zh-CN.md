@@ -9,7 +9,7 @@
 
 [![npm](https://img.shields.io/npm/v/@jsray/core/beta?label=npm)](https://www.npmjs.com/package/@jsray/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.2--beta.1-lightgrey)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.0.2--beta.2-lightgrey)](CHANGELOG.md)
 [![Channel](https://img.shields.io/badge/channel-beta-blue)](docs/versioning.md)
 [![Zero deps](https://img.shields.io/badge/dependencies-0-success)](package.json)
 [![Size](https://img.shields.io/badge/dist-core%20js%20%2B%20css-lightgrey)](dist/)
@@ -45,7 +45,7 @@ JSRay.highlight('const x = 42;', 'js');
 `jsray.org/dist/` 始终提供当前发布版本。**线上站点如果你不会持续盯着,请改用锁定版本的地址** —— 每个发布版本都固化在自己的路径下,永不变动:
 
 ```html
-<script src="https://jsray.org/v/0.0.2-beta.1/jsray.js"></script>
+<script src="https://jsray.org/v/0.0.2-beta.2/jsray.js"></script>
 ```
 
 ### 校验你加载到的东西
@@ -55,7 +55,7 @@ JSRay.highlight('const x = 42;', 'js');
 哈希,浏览器在文件与发布内容不符时会直接拒绝执行:
 
 ```html
-<script src="https://jsray.org/v/0.0.2-beta.1/jsray.js"
+<script src="https://jsray.org/v/0.0.2-beta.2/jsray.js"
         integrity="sha256-…"
         crossorigin="anonymous"></script>
 ```
@@ -63,7 +63,7 @@ JSRay.highlight('const x = 42;', 'js');
 哈希就放在它所描述的文件旁边,格式与 SRI 完全一致:
 
 ```
-https://jsray.org/v/0.0.2-beta.1/integrity.json
+https://jsray.org/v/0.0.2-beta.2/integrity.json
 ```
 
 `crossorigin="anonymous"` 是必需的,不是可选:跨源脚本的 SRI 只有在加载走
@@ -86,14 +86,24 @@ JSRay 的目标是成为完整开源的代码渲染生态：一个轻量 Core �
 
 > 一个渲染核心，让代码在不同平台中发光。
 
-官方集成各自独立仓库,默认使用 JSRay Core,并保持完整可用,不以付费锁定基础能力。规划中的集成:
+官方集成各自独立仓库,默认使用 JSRay Core,并保持完整可用,不以付费锁定基础能力。集成一览:
 
 | 集成 | 仓库 | 状态 |
 |---|---|---|
-| WordPress 插件 | `jsray-wp` | 即将推出 |
-| VS Code 扩展 | `jsray-vscode` | 即将推出 |
-| 终端 CLI | `jsray-terminal` | 即将推出 |
+| WordPress 插件 | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | 公开测试版 · 尚未上架 WordPress.org |
+| VS Code 扩展 | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | 公开测试版 · 尚未上架 Marketplace |
+| 终端 CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | 公开测试版 · 尚未发布到 npm |
 | …以及更多 | — | 欢迎官方与社区适配器 |
+
+三个集成现在都能装,只是要从 GitHub 拿,而不是各自平台的市场:
+
+```sh
+# 终端 CLI
+npm i -g github:jsrayorg/jsray-terminal
+```
+
+- **VS Code** —— 从[最新 Release](https://github.com/jsrayorg/jsray-vscode/releases/latest) 下载 `.vsix`,执行 `code --install-extension jsray-vscode-<版本>.vsix`,或在 **扩展** → `…` → **从 VSIX 安装…**
+- **WordPress** —— 从[最新 Release](https://github.com/jsrayorg/jsray-wp/releases/latest) 下载 `.zip`,在后台 **插件 → 安装插件 → 上传插件**
 
 各仓库在其到达 beta 时对外公开。每个集成都开放 renderer adapter / hook,宿主项目需要时可接入其它渲染器。
 
