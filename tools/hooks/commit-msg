@@ -33,9 +33,15 @@ case "$SUBJECT" in
 esac
 
 # A bare version number names the release without saying anything about it,
-# and it lands on every file the release touched.
-if printf '%s' "$SUBJECT" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z]+)*$'; then
-  fail "a version number is not a description of the change"
+# and it lands on every file the release touched — which is where it is most
+# visible and least useful: GitHub prints the subject beside every path.
+#
+# One leading word does not rescue it. `Release 0.0.2-beta.2` slipped past the
+# bare-version pattern and did exactly what the bare version would have done,
+# on twelve files, permanently — a released commit cannot be reworded, because
+# the tag points at it and this project does not rewrite published history.
+if printf '%s' "$SUBJECT" | grep -qiE '^(release|releasing|bump|bumping|version|publish|publishing|tag)?[[:space:]]*v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z]+)*$'; then
+  fail "a version number is not a description of the change — say what the release brings"
 fi
 
 # The merge appends the pull request number. Typing it produces `(#6) (#6)`,

@@ -111,12 +111,12 @@ Official integrations live in their own repositories, use JSRay Core by default,
 
 | Integration | Repository | Status |
 |---|---|---|
-| WordPress plugin | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | Public beta · not on WordPress.org yet |
-| VS Code extension | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | Public beta · not on the Marketplace yet |
-| Terminal CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | Public beta · not on npm yet |
+| WordPress plugin | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | Public beta |
+| VS Code extension | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | Public beta |
+| Terminal CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | Public beta |
 | …and more | — | Community & official adapters welcome |
 
-Each is installable today, from GitHub rather than from its host's directory:
+Install any of them today:
 
 ```sh
 # Terminal CLI

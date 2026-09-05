@@ -90,12 +90,12 @@ JSRay 的目标是成为完整开源的代码渲染生态：一个轻量 Core �
 
 | 集成 | 仓库 | 状态 |
 |---|---|---|
-| WordPress 插件 | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | 公开测试版 · 尚未上架 WordPress.org |
-| VS Code 扩展 | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | 公开测试版 · 尚未上架 Marketplace |
-| 终端 CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | 公开测试版 · 尚未发布到 npm |
+| WordPress 插件 | [`jsray-wp`](https://github.com/jsrayorg/jsray-wp) | 公开测试版 |
+| VS Code 扩展 | [`jsray-vscode`](https://github.com/jsrayorg/jsray-vscode) | 公开测试版 |
+| 终端 CLI | [`jsray-terminal`](https://github.com/jsrayorg/jsray-terminal) | 公开测试版 |
 | …以及更多 | — | 欢迎官方与社区适配器 |
 
-三个集成现在都能装,只是要从 GitHub 拿,而不是各自平台的市场:
+三个集成现在都能装:
 
 ```sh
 # 终端 CLI

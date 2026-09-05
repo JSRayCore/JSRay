@@ -64,12 +64,12 @@ Core changes flow into plugin repositories by copying or packaging `dist/` asset
 | Repository | Intended channel | Licence | Available from today |
 |---|---|---|---|
 | `jsray` | npm `@jsray/core` | MIT | npm — `@jsray/core@0.0.2-beta.2` |
-| `jsray-wp` | WordPress.org plugin | GPLv2 or later | GitHub release zip · not on WordPress.org yet |
-| `jsray-terminal` | npm CLI | MIT | GitHub — `npm i -g github:jsrayorg/jsray-terminal` · not on npm yet |
-| `jsray-vscode` | VS Code Marketplace | MIT | GitHub release `.vsix` · not on the Marketplace yet |
+| `jsray-wp` | WordPress.org plugin | GPLv2 or later | GitHub release zip |
+| `jsray-terminal` | npm CLI | MIT | GitHub — `npm i -g github:jsrayorg/jsray-terminal` |
+| `jsray-vscode` | VS Code Marketplace | MIT | GitHub release `.vsix` |
 
-A public repository is not a listing. The last column is where a user can
-actually get the thing today; the second is where it is headed.
+The last column is where a user gets the thing today; the second is the channel
+each is headed for at `0.1.0`.
 
 Future platform repositories such as `jsray-react`, `jsray-astro`, or
 `jsray-mdx` if needed.
